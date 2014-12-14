@@ -7,7 +7,7 @@ class Division(models.Model):
 
 class SubDivision(models.Model):
     name = models.CharField(max_length=32)
-    division = models.ForeignKey(Division)
+    division = models.ForeignKey(Division, related_name='subcategory')
 
 class Message(models.Model):
     message_text = models.CharField(max_length=200)
@@ -15,3 +15,5 @@ class Message(models.Model):
     author = models.ForeignKey(DjangoUser) 
     pub_date = models.DateTimeField(auto_now_add=True)
 
+    def __unicode__(self):
+        return self.message_text
