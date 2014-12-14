@@ -10,6 +10,7 @@ class Message(models.Model):
     # TODO ##
     author = models.ForeignKey(DjangoUser) 
     pub_date = models.DateTimeField(auto_now_add=True)
+    expires_date = models.DateField(blank=True, null=True)
 
     # ForeignKey to either Division or SubDivision
     limit = models.Q(app_label='mesg', model='Division')|models.Q(app_label='mesg', model='SubDivision')
