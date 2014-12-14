@@ -1,3 +1,6 @@
 from django.contrib import admin
+from mesg.models import Division, SubDivision, Message
 
-# Register your models here.
+admin.site.register(Division)
+admin.site.register(SubDivision)
+admin.site.register(Message)

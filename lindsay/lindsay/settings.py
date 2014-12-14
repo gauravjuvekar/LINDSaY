@@ -98,7 +98,7 @@ if os.environ.get('TRAVIS') == 'true':
 
 
 AUTHENTICATION_BACKENDS = (
-    'django_auth_ldap.backend.LDAPbackend',
+#    'django_auth_ldap.backend.LDAPbackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
