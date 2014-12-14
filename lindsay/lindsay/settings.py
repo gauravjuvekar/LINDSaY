@@ -94,6 +94,15 @@ if os.environ.get('TRAVIS') == 'true':
     }
 
 
+# Auth
+
+
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPbackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+AUTH_LDAP_SERVER_URI = 'ldap://localhost:80'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
