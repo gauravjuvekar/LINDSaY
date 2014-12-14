@@ -30,7 +30,7 @@ class Division(models.Model):
 
 class SubDivision(models.Model):
     name = models.CharField(max_length=32)
-    division = models.ForeignKey(Division, related_name='subdivision')
+    division = models.ForeignKey(Division, related_name='subdivisions')
     messages = GenericRelation(Message)
 
     def __unicode__(self):
