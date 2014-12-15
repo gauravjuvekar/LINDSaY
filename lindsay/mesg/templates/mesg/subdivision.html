@@ -7,7 +7,11 @@
 {% block messages %}
 	<ul>
 		{% for message in messages %}	
-			<li>{{ message.message_text }}</li>
+			<li>		
+				<a href="{% url 'mesg:message' message_id=message.id %}">
+					{{ message.message_text }}
+				</a>
+			</li>
 		{% endfor %}	
 	</ul>
 {% endblock messages %}
