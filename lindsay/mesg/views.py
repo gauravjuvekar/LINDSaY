@@ -1,7 +1,7 @@
 from django.shortcuts import render , get_object_or_404
 from django.http import HttpResponse
 
-from mesg.models import Division, SubDivision
+from mesg.models import Division, SubDivision, Message
 from django.utils import timezone
 
 
@@ -51,4 +51,23 @@ def subdivision(request, division_name , subdivision_name):
             'messages': messages,
     }
     return render(request, 'mesg/subdivision.html', context)
+
+
+def message(request, message_id):
+    message = get_object_or_404(Message, pk=message_id)
+
+    division = subdivision = None
+    
+    if (message.content_type.model == 'subdivision'):
+        subdivision = message.content_object
+        division = subdivision.division
+    else:
+        division = message.content_object
+
+    context = {
+            'message': message,
+            'division': division,
+            'subdivision': subdivision,
+    }
+    return render(request, 'mesg/message.html', context)
 
