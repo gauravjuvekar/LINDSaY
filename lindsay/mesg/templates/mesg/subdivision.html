@@ -1,0 +1,15 @@
+{% extends "mesg/subdivision_base.html" %}
+
+{% block subdivision_name %}
+	<h1>{{ subdivision.name }}</h1>
+{% endblock subdivision_name %}
+
+{% block messages %}
+	<ul>
+		{% for message in messages %}	
+			<li>{{ message.message_text }}</li>
+		{% endfor %}	
+	</ul>
+{% endblock messages %}
+
+
