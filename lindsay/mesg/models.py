@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.models import User 
 from django.contrib.auth import get_user_model
 
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -9,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 class Message(models.Model):
     message_text = models.CharField(max_length=200)
     # TODO ##
-    author = models.ForeignKey(DjangoUser) 
+    author = models.ForeignKey(User) 
 
     pub_date = models.DateTimeField(auto_now_add=True)
     expires_date = models.DateField(blank=True, null=True)

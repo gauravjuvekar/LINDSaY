@@ -1,5 +1,6 @@
 from django.shortcuts import render , get_object_or_404
 from django.http import HttpResponse
+from django.db.models import Q
 
 from mesg.models import Division, SubDivision, Message
 from django.utils import timezone
@@ -20,12 +21,19 @@ def division(request, division_name):
     division = get_object_or_404(Division, name=division_name)
     subdivisions_list = division.subdivisions.all()
 
-    messages = division.messages.filter(expires_date__gte=timezone.now())
+    # Includes messages from the current division and
+    # all its subdivisions
+    messages = division.messages.filter(
+            Q(expires_date__isnull=True) |
+            Q(expires_date__gte=timezone.now())
+    )
     for subdivision in subdivisions_list:
         messages |= subdivision.messages.filter(
-                expires_date__gte=timezone.now()
+                Q(expires_date__isnull=True) |
+                Q(expires_date__gte=timezone.now())
         )
     messages = messages.order_by('-pub_date')
+
     context = {
             'division': division,
             'subdivisions_list': subdivisions_list,
@@ -42,8 +50,16 @@ def subdivision(request, division_name , subdivision_name):
             division=division
     )
 
-    messages = division.messages.filter(expires_date__gte=timezone.now())
-    messages |= subdivision.messages.filter(expires_date__gte=timezone.now())
+    # Includes messages from the current subdivision and
+    # its parent division (excluding siblings)
+    messages = division.messages.filter(
+            Q(expires_date__isnull=True) |
+            Q(expires_date__gte=timezone.now())
+    )
+    messages |= subdivision.messages.filter(
+            Q(expires_date__isnull=True) |
+            Q(expires_date__gte=timezone.now())
+    )
     messages = messages.order_by('-pub_date')
 
     context = {
@@ -57,7 +73,7 @@ def message(request, message_id):
     message = get_object_or_404(Message, pk=message_id)
 
     division = subdivision = None
-    
+
     if (message.content_type.model == 'subdivision'):
         subdivision = message.content_object
         division = subdivision.division
