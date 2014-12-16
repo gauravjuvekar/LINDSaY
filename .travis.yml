@@ -6,5 +6,5 @@ install:
 before_script:
     - mysql -e 'CREATE DATABASE myapp_test;'
 script:
-    - python ./lindsay/manage.py test
+    - cd lindsay && python ./manage.py test
 
