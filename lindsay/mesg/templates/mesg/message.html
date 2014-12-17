@@ -26,7 +26,7 @@
 		{{ division.name }}
 	</a> 
 	{% if subdivision %}
-		{{ '>>'|escape }}
+		{{ ">>"|escape }}
 		<a href="{% url 'mesg:subdivision' division_name=division.name subdivision_name=subdivision.name %}">
 			{{ subdivision.name }}
 		</a>

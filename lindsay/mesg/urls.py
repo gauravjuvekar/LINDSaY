@@ -1,10 +1,21 @@
 from django.conf.urls import patterns, url
 
-from mesg import views
+from mesg import views, feeds
 
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
-    url(r'^message/(?P<message_id>\d+)$', views.message, name='message'),
-    url(r'^(?P<division_name>.+)/$', views.division, name='division'),
-    url(r'^(?P<division_name>.+)/(?P<subdivision_name>.+)$', views.subdivision, name='subdivision'),
+    url(r'^message/(?P<message_id>\d+)/$', views.message, name='message'),
+    url(r'^(?P<division_name>\w+?)/feed/$',
+        feeds.DivisionFeed(),
+        name='division_feed',
+    ),
+    url(r'^(?P<division_name>\w+?)/$', views.division, name='division'),
+    url(r'^(?P<division_name>\w+?)/(?P<subdivision_name>\w+?)/feed/$',
+        feeds.SubDivisionFeed(),
+        name='subdivision_feed',
+    ),
+    url(r'^(?P<division_name>\w+?)/(?P<subdivision_name>\w+?)/$',
+        views.subdivision,
+        name='subdivision',
+    ),
 )
