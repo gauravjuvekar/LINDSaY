@@ -7,13 +7,13 @@ from django.core.urlresolvers import reverse
 
 from mesg.models import *
 
+
 def create_division_subdivisions(division_name, subdivision_names):
     division = Division.objects.create(name=division_name)
     subdivisions = [
             SubDivision.objects.create(name=x, division=division) for x in
             subdivision_names
     ]
-
 
 class SubdivisionViewTests(TestCase):
     def test_subdivision_view_with_no_messages(self):
@@ -502,4 +502,39 @@ class DivisionViewTests(TestCase):
                 # Because auto_now_add cannot be overidden even
                 # in testing and adding time.sleep(1) sucks
                 ordered=False 
+        )
+
+
+class IndexViewTests(TestCase):
+    def test_index_view_with_no_divisions(self):
+
+        response = self.client.get(reverse('mesg:index'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_index_view_with_multiple_divisions_and_subdivisions(self):
+        create_division_subdivisions('7', ['A', 'B'])
+        div_7 = Division.objects.get(name='7')
+        create_division_subdivisions('8', ['A', 'B', 'C'])
+        div_8 = Division.objects.get(name='8')
+
+
+        response = self.client.get(reverse('mesg:index'))
+        self.assertEqual(response.status_code, 200)
+
+        self.assertQuerysetEqual(
+                response.context['divisions_list'],
+                map(repr, [
+                        (div_7, [
+                            div_7.subdivisions.all()[0],
+                            div_7.subdivisions.all()[1],
+                            ]
+                        ),
+                        (div_8, [
+                            div_8.subdivisions.all()[0],
+                            div_8.subdivisions.all()[1],
+                            div_8.subdivisions.all()[2],
+                            ]
+                        )
+                    ]
+                )
         )
