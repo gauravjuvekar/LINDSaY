@@ -1,5 +1,15 @@
-{% block subdivision_name %}
-{% endblock subdivision_name %}
+{% extends "mesg/base.html" %}
+
+
+
+{% block title %}{% endblock title %}
+
+
+
+{% block body %}
+<h1>
+	{% block subdivision_name %}{% endblock subdivision_name %}
+</h1>
 <hr />
-{% block messages %}
-{% endblock messages %}
+{% block messages %}{% endblock messages %}
+{% endblock body %}

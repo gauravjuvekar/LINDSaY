@@ -1,9 +1,16 @@
-from django.shortcuts import render , get_object_or_404
-from django.http import HttpResponse
+from django.shortcuts import render , get_object_or_404, render_to_response
+from django.http import HttpResponse, HttpResponseRedirect
+from django.core.urlresolvers import reverse
+
 from django.db.models import Q
+
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.template import RequestContext
 
 from mesg.models import Division, SubDivision, Message
 from django.utils import timezone
+
 
 
 def index(request):
@@ -15,6 +22,7 @@ def index(request):
             'divisions_list': divisions_list,
     }
     return render(request, 'mesg/index.html', context)
+
 
 
 def division(request, division_name):
@@ -40,6 +48,7 @@ def division(request, division_name):
             'messages': messages,
     }
     return render(request, 'mesg/division.html', context)
+
 
 
 def subdivision(request, division_name , subdivision_name):
@@ -69,6 +78,7 @@ def subdivision(request, division_name , subdivision_name):
     return render(request, 'mesg/subdivision.html', context)
 
 
+
 def message(request, message_id):
     message = get_object_or_404(Message, pk=message_id)
 
@@ -87,3 +97,27 @@ def message(request, message_id):
     }
     return render(request, 'mesg/message.html', context)
 
+
+
+def user_login(request):
+    context = RequestContext(request)
+
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+
+        user = authenticate(username=username, password=password)
+        if user:
+            login(request, user)
+            return HttpResponseRedirect(reverse('mesg:index'))
+        else:
+            return HttpResponse("Invalid login details")
+    else:
+        return render_to_response('mesg/login.html', {}, context)
+
+
+
+@login_required
+def user_logout(request):
+    logout(request)
+    return HttpResponseRedirect(reverse('mesg:index'))

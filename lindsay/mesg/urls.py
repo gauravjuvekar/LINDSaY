@@ -4,6 +4,10 @@ from mesg import views, feeds
 
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
+
+    url(r'^login/$', views.user_login, name='login'),
+    url(r'^logout/$', views.user_logout, name='logout'),
+
     url(r'^message/(?P<message_id>\d+)/$', views.message, name='message'),
     url(r'^(?P<division_name>\w+?)/feed/$',
         feeds.DivisionFeed(),

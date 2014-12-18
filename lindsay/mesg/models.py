@@ -1,15 +1,17 @@
 from django.db import models
-from django.contrib.auth.models import User 
+from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericRelation
+
 from django.contrib.contenttypes.models import ContentType
 
 
 class Message(models.Model):
     message_text = models.CharField(max_length=200)
     # TODO ##
-    author = models.ForeignKey(User) 
+    author = models.ForeignKey(User)
 
     pub_date = models.DateTimeField(auto_now_add=True)
     expires_date = models.DateField(blank=True, null=True)
@@ -41,3 +43,10 @@ class SubDivision(models.Model):
     def __unicode__(self):
         return self.name + ' Parent: ' + self.division.name
 
+class UserDetails(models.Model):
+    user = models.OneToOneField(User)
+    division = models.ForeignKey(Division)
+    subdivision = models.ForeignKey(SubDivision)
+
+    def __unicode__(self):
+        return self.user.username

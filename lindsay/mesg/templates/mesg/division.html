@@ -1,8 +1,13 @@
 {% extends "mesg/division_base.html" %}
 
 
+{% block title %}
+Messages for {{ division.name }} -
+{% endblock title %}
+
+
 {% block division_name %}
-	<h1>{{ division.name }}</h1>
+{{ division.name }}
 {% endblock division_name %}
 
 
@@ -14,6 +19,8 @@
 				{{ subdivision.name }}
 			</a>
 		</li>
+	{% empty %}
+		No subdivisions available
 	{% endfor %}
 </ul>
 {% endblock subdivisions_list %}
@@ -27,6 +34,8 @@
 				{{ message.message_text }}
 			</a>
 		</li>
+	{% empty %}
+		No messages available
 	{% endfor %}
 </ul>
 {% endblock messages %}
