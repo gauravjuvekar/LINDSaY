@@ -11,7 +11,8 @@ from django.template import RequestContext
 from mesg.models import Division, SubDivision, Message
 from django.utils import timezone
 
-
+from mesg.forms import CreateMessageForm
+import re
 
 def index(request):
     divisions_list = [
@@ -116,8 +117,50 @@ def user_login(request):
         return render_to_response('mesg/login.html', {}, context)
 
 
-
+# TODO: circular links from login to logout page
 @login_required
 def user_logout(request):
     logout(request)
     return HttpResponseRedirect(reverse('mesg:index'))
+
+
+@login_required
+def create_message(request):
+    if request.method == 'POST':
+        form = CreateMessageForm(request.POST)
+
+        if form.is_valid():
+            data = form.cleaned_data
+            # the category names from form select are '(sub)?division_(pk)'
+            # as both divisions and subdivisions can be selected in a single
+            # dropdown list though being different models
+
+            division = re.match(r'^division_(?P<pk>\d+)$', data['category'])
+            if division:
+                category_object = Division.objects.get(
+                        pk=int(division.group('pk'))
+                )
+            else:
+                subdivision = re.match(
+                    r'^subdivision_(?P<pk>\d+)$',
+                    data['category'],
+                )
+                category_object = SubDivision.objects.get(
+                        pk=int(subdivision.group('pk'))
+                )
+            message = Message(
+                    message_text=data['message_text'],
+                    author=request.user,
+                    expires_date=data['expires_date'],
+                    content_object=category_object,
+            )
+            message.save()
+
+            return HttpResponseRedirect(reverse(
+                        'mesg:message',
+                        kwargs={'message_id': message.pk},
+                    )
+            )
+    else:
+        form = CreateMessageForm()
+    return render(request, 'mesg/create_message.html', {'form': form})

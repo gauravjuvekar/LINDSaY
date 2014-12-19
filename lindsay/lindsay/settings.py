@@ -60,6 +60,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 ROOT_URLCONF = 'lindsay.urls'
+LOGIN_URL = '/login/'
 
 WSGI_APPLICATION = 'lindsay.wsgi.application'
 

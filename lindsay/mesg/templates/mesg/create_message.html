@@ -1,0 +1,16 @@
+{% extends "mesg/base.html" %}
+
+
+{% block title %}
+Create message - 
+{% endblock title %}
+
+
+{% block body %}
+<form action="{% url 'mesg:create_message' %}" method="post">
+	{% csrf_token %}
+	{{ form.as_p }}
+	<input type="submit" value="Post it" />
+</form>
+{% endblock body %}
+
