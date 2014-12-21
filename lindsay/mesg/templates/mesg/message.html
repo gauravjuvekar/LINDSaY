@@ -25,7 +25,10 @@ Message {{ message.pk }} -
 {% if message.expires_date != Null %}
 	{{ message.expires_date|timeuntil }} ({{ message.expires_date|date:"c" }})
 {% else %}
-	Never
+	Never - 
+	<a href="{% url 'mesg:expire_message' message_id=message.id %}">
+		Expire this message now
+	</a>
 {% endif %}
 {% endblock expires_date %}
 

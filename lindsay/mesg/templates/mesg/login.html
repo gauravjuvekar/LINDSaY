@@ -13,6 +13,18 @@
 		<input type="password" name="password" value="" />	
 		<br />
 
+		{# next can be passed either as a context variable or get parameter #}
+		{% if next %}
+			<input type="hidden" name="next" value="{{ next }}" />
+		{% else %}
+			<input type="hidden" name="next" value="{{ request.GET.next }}" />
+		{% endif %}
+		
+		{% if state %}
+			<b>{{ state }}</b>
+			<br />
+		{% endif %}
+
 		<input type="submit" value="Login" />
 	</form>
 {% endif %}

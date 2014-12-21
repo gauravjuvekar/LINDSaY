@@ -1,14 +1,6 @@
 from django import forms
 from mesg.models import Category, Message
 
-class CategoryModelChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        if obj.parent == None:
-            return obj.name
-        else:
-            return '----' + obj.name
-
-        
 
 class CreateMessageForm(forms.Form):
     message_text = forms.CharField(
@@ -23,13 +15,14 @@ class CreateMessageForm(forms.Form):
             required=False
     )
 
-    categories = Category.objects.none()
+    choices = []
     for division in Category.objects.filter(parent=None):
-        categories |= Category.objects.filter(pk=division.pk)
-        categories |= division.subcategories.all()
+        choices.append((division.id, division.name))
+        for subdivision in division.subcategories.all():
+            choices.append((subdivision.id, '----' + subdivision.name))
 
-    category = CategoryModelChoiceField(
-            queryset=categories,
-            label='Category'
+    category = forms.ChoiceField(
+            choices=choices,
+            label='Category',
     )
 

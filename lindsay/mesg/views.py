@@ -1,5 +1,7 @@
-from django.shortcuts import render , get_object_or_404, render_to_response
-from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render , get_object_or_404
+from django.shortcuts import render_to_response
+from django.http import HttpResponseRedirect
+from django.http import HttpResponseBadRequest
 from django.core.urlresolvers import reverse
 
 from django.db.models import Q
@@ -12,7 +14,6 @@ from mesg.models import Category, Message
 from django.utils import timezone
 
 from mesg.forms import CreateMessageForm
-import re
 
 def index(request):
     category_list = [
@@ -48,7 +49,7 @@ def division(request, division_name):
 
     messages = get_messages(
             division,
-            Q(expires_date__isnull=True)|Q(expires_date__gte=timezone.now())       
+            Q(expires_date__isnull=True)|Q(expires_date__gte=timezone.now())
     ).order_by('-pub_date')
 
     context = {
@@ -108,18 +109,27 @@ def user_login(request):
         username = request.POST['username']
         password = request.POST['password']
 
+        next_url=request.POST['next']
+
         user = authenticate(username=username, password=password)
         if user:
             login(request, user)
-            return HttpResponseRedirect(reverse('mesg:index'))
+            if next_url:
+                return HttpResponseRedirect(next_url)
+            else:
+                return HttpResponseRedirect(reverse('mesg:index'))
         else:
-            return HttpResponse("Invalid login details")
+            state = "Invalid credentials"
+            # NOTE: not redirecting from a POST
+            return render_to_response(
+                    'mesg/login.html',
+                    {'state': state, 'next': next_url},
+                    context,
+            )
     else:
         return render_to_response('mesg/login.html', {}, context)
 
 
-# TODO: circular links from login to logout page
-@login_required
 def user_logout(request):
     logout(request)
     return HttpResponseRedirect(reverse('mesg:index'))
@@ -132,11 +142,15 @@ def create_message(request):
 
         if form.is_valid():
             data = form.cleaned_data
+            try:
+                category=Category.objects.get(pk=data['category'])
+            except ObjectDoesNotExist:
+                return HttpResponseBadRequest
 
             message = Message(
                     message_text=data['message_text'],
                     author=request.user,
-                    category=data['category'],
+                    category=category,
                     expires_date=data['expires_date'],
             )
             message.save()
@@ -149,3 +163,19 @@ def create_message(request):
     else:
         form = CreateMessageForm()
     return render(request, 'mesg/create_message.html', {'form': form})
+
+
+@login_required
+def expire_message(request, message_id):
+    message = get_object_or_404(Message, pk=message_id)
+
+    if message.expires_date == None:
+        message.expires_date = timezone.now()
+        message.save()
+        return HttpResponseRedirect(reverse(
+                'mesg:message',
+                kwargs={'message_id': message.id}
+            )
+        )
+    else:
+        return HttpResponseBadRequest
