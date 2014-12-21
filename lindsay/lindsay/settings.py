@@ -60,7 +60,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 ROOT_URLCONF = 'lindsay.urls'
-LOGIN_URL = '/login/'
+LOGIN_URL = 'mesg:login'
 
 WSGI_APPLICATION = 'lindsay.wsgi.application'
 
@@ -120,7 +120,7 @@ AUTH_LDAP_SERVER_URI = 'ldap://localhost:80'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
