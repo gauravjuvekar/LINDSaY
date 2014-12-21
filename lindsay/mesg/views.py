@@ -132,7 +132,11 @@ def user_login(request):
 
 def user_logout(request):
     logout(request)
-    return HttpResponseRedirect(reverse('mesg:index'))
+    next_url = request.GET['next']
+    if next_url:
+        return HttpResponseRedirect(next_url)
+    else:
+        return HttpResponseRedirect(reverse('mesg:index'))
 
 
 @login_required
