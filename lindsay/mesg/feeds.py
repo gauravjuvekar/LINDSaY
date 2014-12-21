@@ -5,13 +5,30 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils import timezone
 
-from mesg.models import Message, SubDivision, Division
+from mesg.models import Category, Message
+
+def get_messages(category, query):
+    def get_child_messages(category, query):
+        messages = category.messages.filter(query)
+        for child in category.subcategories.all():
+            messages |= get_child_messages(child, query)
+        return messages
+    def get_parent_messages(category, query):
+        messages = Category.objects.none()
+        while category != None:
+            messages |= category.messages.filter(query)
+            category = category.parent
+        return messages
+    messages = get_parent_messages(category,query)
+    messages |= get_child_messages(category,query)
+    return messages
 
 class DivisionFeed(Feed):
     def get_object(self, request, division_name):
         return get_object_or_404(
-                Division,
+                Category,
                 name=division_name,
+                parent=None
         )
 
     def title(self, division):
@@ -24,18 +41,10 @@ class DivisionFeed(Feed):
         )
 
     def items(self, division):
-        messages = division.messages.filter(
-                Q(expires_date__isnull=True)|
-                Q(expires_date__gte=timezone.now())
-        )
-
-        for subdivision in division.subdivisions.all():
-            messages |= subdivision.division.messages.filter(
-                    Q(expires_date__isnull=True)|
-                    Q(expires_date__gte=timezone.now())
-            )
-
-        messages = messages.order_by('-pub_date')
+        messages = get_messages(
+                division,
+                Q(expires_date__isnull=True)|Q(expires_date__gte=timezone.now())       
+        ).order_by('-pub_date')
         return messages
 
     def item_link(self, message):
@@ -45,37 +54,34 @@ class DivisionFeed(Feed):
 class SubDivisionFeed(Feed):
     def get_object(self, request, division_name, subdivision_name):
         return get_object_or_404(
-                SubDivision,
+                Category,
                 name=subdivision_name,
-                division=get_object_or_404(Division, name=division_name),
+                division=get_object_or_404(
+                    Category,
+                    name=division_name,
+                    parent=None
+                ),
         )
 
     def title(self, subdivision):
         return "Feed for division %s, subdivision %s" % (
-                subdivision.division.name,
+                subdivision.parent.name,
                 subdivision.name,
         )
     
     def link(self, subdivision):
         return reverse(
                 'mesg:subdivision', kwargs={
-                    'division_name': subdivision.division.name,
+                    'division_name': subdivision.parent.name,
                     'subdivision_name': subdivision.name,
                 }
         )
 
     def items(self, subdivision):
-        messages = subdivision.messages.filter(
-                Q(expires_date__isnull=True)|
-                Q(expires_date__gte=timezone.now())
-        )
-
-        messages |= subdivision.division.messages.filter(
-                Q(expires_date__isnull=True)|
-                Q(expires_date__gte=timezone.now())
-        )
-
-        messages = messages.order_by('-pub_date')
+        messages = get_messages(
+                division,
+                Q(expires_date__isnull=True)|Q(expires_date__gte=timezone.now())       
+        ).order_by('-pub_date')
         return messages
 
     def item_link(self, message):

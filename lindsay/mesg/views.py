@@ -8,40 +8,48 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 
-from mesg.models import Division, SubDivision, Message
+from mesg.models import Category, Message
 from django.utils import timezone
 
 from mesg.forms import CreateMessageForm
 import re
 
 def index(request):
-    divisions_list = [
-            (division, division.subdivisions.all()) for division in
-            Division.objects.all()
+    category_list = [
+            (category, category.subcategories.all()) for category in
+            Category.objects.filter(parent__isnull=True)
     ]
     context = {
-            'divisions_list': divisions_list,
+            'divisions_list': category_list,
     }
     return render(request, 'mesg/index.html', context)
 
 
+def get_messages(category, query):
+    def get_child_messages(category, query):
+        messages = category.messages.filter(query)
+        for child in category.subcategories.all():
+            messages |= get_child_messages(child, query)
+        return messages
+    def get_parent_messages(category, query):
+        messages = Category.objects.none()
+        while category != None:
+            messages |= category.messages.filter(query)
+            category = category.parent
+        return messages
+    messages = get_parent_messages(category,query)
+    messages |= get_child_messages(category,query)
+    return messages
+
 
 def division(request, division_name):
-    division = get_object_or_404(Division, name=division_name)
-    subdivisions_list = division.subdivisions.all()
+    division = get_object_or_404(Category, name=division_name, parent=None)
+    subdivisions_list = division.subcategories.all()
 
-    # Includes messages from the current division and
-    # all its subdivisions
-    messages = division.messages.filter(
-            Q(expires_date__isnull=True) |
-            Q(expires_date__gte=timezone.now())
-    )
-    for subdivision in subdivisions_list:
-        messages |= subdivision.messages.filter(
-                Q(expires_date__isnull=True) |
-                Q(expires_date__gte=timezone.now())
-        )
-    messages = messages.order_by('-pub_date')
+    messages = get_messages(
+            division,
+            Q(expires_date__isnull=True)|Q(expires_date__gte=timezone.now())       
+    ).order_by('-pub_date')
 
     context = {
             'division': division,
@@ -53,24 +61,17 @@ def division(request, division_name):
 
 
 def subdivision(request, division_name , subdivision_name):
-    division = get_object_or_404(Division, name=division_name)
+    division = get_object_or_404(Category, name=division_name, parent=None)
     subdivision = get_object_or_404(
-            SubDivision,
+            Category,
             name=subdivision_name,
-            division=division
+            parent=division
     )
 
-    # Includes messages from the current subdivision and
-    # its parent division (excluding siblings)
-    messages = division.messages.filter(
-            Q(expires_date__isnull=True) |
-            Q(expires_date__gte=timezone.now())
-    )
-    messages |= subdivision.messages.filter(
-            Q(expires_date__isnull=True) |
-            Q(expires_date__gte=timezone.now())
-    )
-    messages = messages.order_by('-pub_date')
+    messages = get_messages(
+            subdivision,
+            Q(expires_date__isnull=True)|Q(expires_date__gte=timezone.now())
+    ).order_by('-pub_date')
 
     context = {
             'subdivision': subdivision,
@@ -84,12 +85,12 @@ def message(request, message_id):
     message = get_object_or_404(Message, pk=message_id)
 
     division = subdivision = None
-
-    if (message.content_type.model == 'subdivision'):
-        subdivision = message.content_object
-        division = subdivision.division
+    category = message.category
+    if category.parent != None:
+        subdivision = message.category
+        division = category.parent
     else:
-        division = message.content_object
+        division = category
 
     context = {
             'message': message,
@@ -135,24 +136,11 @@ def create_message(request):
             # as both divisions and subdivisions can be selected in a single
             # dropdown list though being different models
 
-            division = re.match(r'^division_(?P<pk>\d+)$', data['category'])
-            if division:
-                category_object = Division.objects.get(
-                        pk=int(division.group('pk'))
-                )
-            else:
-                subdivision = re.match(
-                    r'^subdivision_(?P<pk>\d+)$',
-                    data['category'],
-                )
-                category_object = SubDivision.objects.get(
-                        pk=int(subdivision.group('pk'))
-                )
             message = Message(
                     message_text=data['message_text'],
                     author=request.user,
+                    category=data['category'],
                     expires_date=data['expires_date'],
-                    content_object=category_object,
             )
             message.save()
 
