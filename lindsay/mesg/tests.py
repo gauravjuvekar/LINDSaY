@@ -9,9 +9,9 @@ from mesg.models import *
 
 
 def create_division_subdivisions(division_name, subdivision_names):
-    division = Division.objects.create(name=division_name)
+    division = Category.objects.create(name=division_name,parent=None)
     subdivisions = [
-            SubDivision.objects.create(name=x, division=division) for x in
+            Category.objects.create(name=x, parent=division) for x in
             subdivision_names
     ]
 
@@ -42,7 +42,7 @@ class SubdivisionViewTests(TestCase):
         m = Message.objects.create(
                 message_text='Test message in parent',
                 author=u,
-                content_object=Division.objects.get(name='7')
+                category=Category.objects.get(name='7', parent=None)
         )
 
         response = self.client.get(
@@ -66,7 +66,10 @@ class SubdivisionViewTests(TestCase):
         m = Message.objects.create(
                 message_text='Test message in self',
                 author=u,
-                content_object=SubDivision.objects.get(name='A')
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         response = self.client.get(
@@ -90,7 +93,10 @@ class SubdivisionViewTests(TestCase):
         m = Message.objects.create(
                 message_text='Test message in sibling',
                 author=u,
-                content_object=SubDivision.objects.get(name='B')
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         response = self.client.get(
@@ -116,19 +122,25 @@ class SubdivisionViewTests(TestCase):
         m_self = Message.objects.create(
                 message_text='Test message in self',
                 author=u,
-                content_object=SubDivision.objects.get(name='A'),
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         m_parent = Message.objects.create(
                 message_text='Test message in parent posted now',
                 author=u,
-                content_object=Division.objects.get(name='7')
+                category=Category.objects.get(name='7', parent=None)
         )
 
         m_sibling = Message.objects.create(
                 message_text='Test message in sibling posted',
                 author=u,
-                content_object=SubDivision.objects.get(name='B'),
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         response = self.client.get(
@@ -157,74 +169,98 @@ class SubdivisionViewTests(TestCase):
         m_self_never_expires = Message.objects.create(
                 message_text='Test message in self that never expires',
                 author=u,
-                content_object=SubDivision.objects.get(name='A'),
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         m_parent_never_expires = Message.objects.create(
                 message_text='Test message in parent that never expires',
                 author=u,
-                content_object=Division.objects.get(name='7'),
+                category=Category.objects.get(name='7', parent=None)
         )
         m_sibling_never_expires = Message.objects.create(
                 message_text='Test message in sibling that never expires',
                 author=u,
-                content_object=SubDivision.objects.get(name='B'),
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         m_self_future_expires = Message.objects.create(
                 message_text='Test message in self that expires in future',
                 author=u,
-                content_object=SubDivision.objects.get(name='A'),
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now() + datetime.timedelta(days=2),
         )
         m_parent_future_expires = Message.objects.create(
                 message_text='Test message in parent that expires in future',
                 author=u,
-                content_object=Division.objects.get(name='7'),
+                category=Category.objects.get(name='7', parent=None),
                 expires_date=timezone.now() + datetime.timedelta(days=2),
         )
         m_sibling_future_expires = Message.objects.create(
                 message_text='Test message in sibling that expires in future',
                 author=u,
-                content_object=SubDivision.objects.get(name='B'),
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now() + datetime.timedelta(days=2),
         )
 
         m_self_past_expires = Message.objects.create(
                 message_text='Test message in self that has expired',
                 author=u,
-                content_object=SubDivision.objects.get(name='A'),
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now() - datetime.timedelta(days=2),
         )
         m_parent_past_expires = Message.objects.create(
                 message_text='Test message in parent that has expired',
                 author=u,
-                content_object=Division.objects.get(name='7'),
+                category=Category.objects.get(name='7', parent=None),
                 expires_date=timezone.now() - datetime.timedelta(days=2),
         )
         m_sibling_past_expires = Message.objects.create(
                 message_text='Test message in sibling that has expired',
                 author=u,
-                content_object=SubDivision.objects.get(name='B'),
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now() - datetime.timedelta(days=2),
         )
 
         m_self_today_expires = Message.objects.create(
                 message_text='Test message in self that expires today',
                 author=u,
-                content_object=SubDivision.objects.get(name='A'),
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now()
         )
         m_parent_today_expires = Message.objects.create(
                 message_text='Test message in parent that expires today',
                 author=u,
-                content_object=Division.objects.get(name='7'),
+                category=Category.objects.get(name='7', parent=None),
                 expires_date=timezone.now()
         )
         m_sibling_today_expires = Message.objects.create(
                 message_text='Test message in sibling that expires today',
                 author=u,
-                content_object=SubDivision.objects.get(name='B'),
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now()
         )
 
@@ -282,7 +318,7 @@ class DivisionViewTests(TestCase):
         m = Message.objects.create(
                 message_text='Test message in self',
                 author=u,
-                content_object=Division.objects.get(name='7')
+                category=Category.objects.get(name='7', parent=None)
         )
 
         response = self.client.get(
@@ -306,7 +342,10 @@ class DivisionViewTests(TestCase):
         m = Message.objects.create(
                 message_text='Test message in self',
                 author=u,
-                content_object=SubDivision.objects.get(name='A')
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         response = self.client.get(
@@ -331,12 +370,18 @@ class DivisionViewTests(TestCase):
         m1 = Message.objects.create(
                 message_text='Test message in sub1',
                 author=u,
-                content_object=SubDivision.objects.get(name='A')
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
         m2 = Message.objects.create(
                 message_text='Test message in sub2',
                 author=u,
-                content_object=SubDivision.objects.get(name='B')
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         response = self.client.get(
@@ -364,19 +409,25 @@ class DivisionViewTests(TestCase):
         m_self = Message.objects.create(
                 message_text='Test message in self',
                 author=u,
-                content_object=Division.objects.get(name='7'),
+                category=Category.objects.get(name='7', parent=None)
         )
 
         m_sub_1 = Message.objects.create(
                 message_text='Test message in sub1',
                 author=u,
-                content_object=SubDivision.objects.get(name='A')
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         m_sub_2 = Message.objects.create(
                 message_text='Test message in sub2',
                 author=u,
-                content_object=SubDivision.objects.get(name='B'),
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         response = self.client.get(
@@ -405,74 +456,98 @@ class DivisionViewTests(TestCase):
         m_self_never_expires = Message.objects.create(
                 message_text='Test message in self that never expires',
                 author=u,
-                content_object=Division.objects.get(name='7'),
+                category=Category.objects.get(name='7', parent=None)
         )
 
         m_sub1_never_expires = Message.objects.create(
                 message_text='Test message in sub1 that never expires',
                 author=u,
-                content_object=SubDivision.objects.get(name='A'),
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
         m_sub2_never_expires = Message.objects.create(
                 message_text='Test message in sub2 that never expires',
                 author=u,
-                content_object=SubDivision.objects.get(name='B'),
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                )
         )
 
         m_self_future_expires = Message.objects.create(
                 message_text='Test message in self that expires in future',
                 author=u,
-                content_object=Division.objects.get(name='7'),
+                category=Category.objects.get(name='7', parent=None),
                 expires_date=timezone.now() + datetime.timedelta(days=2),
         )
         m_sub1_future_expires = Message.objects.create(
                 message_text='Test message in sub1 that expires in future',
                 author=u,
-                content_object=SubDivision.objects.get(name='A'),
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now() + datetime.timedelta(days=2),
         )
         m_sub2_future_expires = Message.objects.create(
                 message_text='Test message in sub2 that expires in future',
                 author=u,
-                content_object=SubDivision.objects.get(name='B'),
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now() + datetime.timedelta(days=2),
         )
 
         m_self_past_expires = Message.objects.create(
                 message_text='Test message in self that has expired',
                 author=u,
-                content_object=Division.objects.get(name='7'),
+                category=Category.objects.get(name='7', parent=None),
                 expires_date=timezone.now() - datetime.timedelta(days=2),
         )
         m_sub1_past_expires = Message.objects.create(
                 message_text='Test message in sub1 that has expired',
                 author=u,
-                content_object=SubDivision.objects.get(name='A'),
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now() - datetime.timedelta(days=2),
         )
         m_sub2_past_expires = Message.objects.create(
                 message_text='Test message in sub2 that has expired',
                 author=u,
-                content_object=SubDivision.objects.get(name='B'),
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now() - datetime.timedelta(days=2),
         )
 
         m_self_today_expires = Message.objects.create(
                 message_text='Test message in self that expires today',
                 author=u,
-                content_object=Division.objects.get(name='7'),
+                category=Category.objects.get(name='7', parent=None),
                 expires_date=timezone.now()
         )
         m_sub1_today_expires = Message.objects.create(
                 message_text='Test message in sub1 that expires today',
                 author=u,
-                content_object=SubDivision.objects.get(name='A'),
+                category=Category.objects.get(
+                    name='A',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now()
         )
         m_sub2_today_expires = Message.objects.create(
                 message_text='Test message in sub2 that expires today',
                 author=u,
-                content_object=SubDivision.objects.get(name='B'),
+                category=Category.objects.get(
+                    name='B',
+                    parent=Category.objects.get(name='7', parent=None)
+                ),
                 expires_date=timezone.now()
         )
 
@@ -513,9 +588,9 @@ class IndexViewTests(TestCase):
 
     def test_index_view_with_multiple_divisions_and_subdivisions(self):
         create_division_subdivisions('7', ['A', 'B'])
-        div_7 = Division.objects.get(name='7')
+        div_7 = Category.objects.get(name='7', parent=None)
         create_division_subdivisions('8', ['A', 'B', 'C'])
-        div_8 = Division.objects.get(name='8')
+        div_8 = Category.objects.get(name='8', parent=None)
 
 
         response = self.client.get(reverse('mesg:index'))
@@ -525,14 +600,14 @@ class IndexViewTests(TestCase):
                 response.context['divisions_list'],
                 map(repr, [
                         (div_7, [
-                            div_7.subdivisions.all()[0],
-                            div_7.subdivisions.all()[1],
+                            div_7.subcategories.all()[0],
+                            div_7.subcategories.all()[1],
                             ]
                         ),
                         (div_8, [
-                            div_8.subdivisions.all()[0],
-                            div_8.subdivisions.all()[1],
-                            div_8.subdivisions.all()[2],
+                            div_8.subcategories.all()[0],
+                            div_8.subcategories.all()[1],
+                            div_8.subcategories.all()[2],
                             ]
                         )
                     ]

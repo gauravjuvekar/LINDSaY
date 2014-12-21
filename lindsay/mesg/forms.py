@@ -1,5 +1,14 @@
 from django import forms
-from mesg.models import Message, Division, SubDivision
+from mesg.models import Category, Message
+
+class CategoryModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        if obj.parent == None:
+            return obj.name
+        else:
+            return '----' + obj.name
+
+        
 
 class CreateMessageForm(forms.Form):
     message_text = forms.CharField(
@@ -14,20 +23,13 @@ class CreateMessageForm(forms.Form):
             required=False
     )
 
-    # NOTE: TDWTF worthy, make generic category model
-    choices = []
-    for division in Division.objects.all():
-        choices.append( ('division_' + str(division.pk), division.name))
-        for subdivision in division.subdivisions.all():
-            choices.append(
-                    (
-                        'subdivision_' + str(subdivision.pk),
-                        '----' + division.name + subdivision.name
-                    )
-            )
+    categories = Category.objects.none()
+    for division in Category.objects.filter(parent=None):
+        categories |= Category.objects.filter(pk=division.pk)
+        categories |= division.subcategories.all()
 
-    category = forms.ChoiceField(
-            choices=choices,
+    category = CategoryModelChoiceField(
+            queryset=categories,
             label='Category'
     )
 
