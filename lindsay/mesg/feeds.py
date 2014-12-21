@@ -7,21 +7,8 @@ from django.utils import timezone
 
 from mesg.models import Category, Message
 
-def get_messages(category, query):
-    def get_child_messages(category, query):
-        messages = category.messages.filter(query)
-        for child in category.subcategories.all():
-            messages |= get_child_messages(child, query)
-        return messages
-    def get_parent_messages(category, query):
-        messages = Category.objects.none()
-        while category != None:
-            messages |= category.messages.filter(query)
-            category = category.parent
-        return messages
-    messages = get_parent_messages(category,query)
-    messages |= get_child_messages(category,query)
-    return messages
+
+from mesg.views import get_messages
 
 class DivisionFeed(Feed):
     def get_object(self, request, division_name):
