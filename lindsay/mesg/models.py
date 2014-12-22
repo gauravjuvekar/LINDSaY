@@ -36,7 +36,7 @@ class Message(models.Model):
 
 
 class UserDetails(models.Model):
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, related_name='details')
     category_choice = models.ForeignKey(Category)
 
     def __unicode__(self):
