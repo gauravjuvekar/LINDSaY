@@ -13,8 +13,13 @@ class Category(models.Model):
     )
 
     def __unicode__(self):
-        return self.name
+        name = []
+        obj = self
+        while obj != None:
+            name.append(obj.name)
+            obj = obj.parent
 
+        return '/'.join(name[::-1])
 
 
 class Message(models.Model):
