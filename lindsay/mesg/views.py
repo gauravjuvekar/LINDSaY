@@ -75,6 +75,7 @@ def subdivision(request, division_name , subdivision_name):
     ).order_by('-pub_date')
 
     context = {
+            'division': division,
             'subdivision': subdivision,
             'messages': messages,
     }

@@ -30,7 +30,7 @@ class DivisionFeed(Feed):
     def items(self, division):
         messages = get_messages(
                 division,
-                Q(expires_date__isnull=True)|Q(expires_date__gte=timezone.now())       
+                Q(expires_date__isnull=True)|Q(expires_date__gte=timezone.now())
         ).order_by('-pub_date')
         return messages
 
@@ -43,7 +43,7 @@ class SubDivisionFeed(Feed):
         return get_object_or_404(
                 Category,
                 name=subdivision_name,
-                division=get_object_or_404(
+                parent=get_object_or_404(
                     Category,
                     name=division_name,
                     parent=None
@@ -55,7 +55,7 @@ class SubDivisionFeed(Feed):
                 subdivision.parent.name,
                 subdivision.name,
         )
-    
+
     def link(self, subdivision):
         return reverse(
                 'mesg:subdivision', kwargs={
@@ -66,7 +66,7 @@ class SubDivisionFeed(Feed):
 
     def items(self, subdivision):
         messages = get_messages(
-                division,
+                subdivision,
                 Q(expires_date__isnull=True)|Q(expires_date__gte=timezone.now())       
         ).order_by('-pub_date')
         return messages
