@@ -10,6 +10,9 @@
 <h1>
 	{% block subdivision_name %}{% endblock subdivision_name %}
 </h1>
+<a href="{% url 'mesg:subdivision_feed' division_name=division.name subdivision_name=subdivision.name %}">
+	Feed
+</a>
 <hr />
 {% block messages %}{% endblock messages %}
 {% endblock body %}
