@@ -32,7 +32,7 @@ class Message(models.Model):
 
 class UserDetails(models.Model):
     user = models.OneToOneField(User)
-    category = models.ForeignKey(Category)
+    category_choice = models.ForeignKey(Category)
 
     def __unicode__(self):
         return self.user.username

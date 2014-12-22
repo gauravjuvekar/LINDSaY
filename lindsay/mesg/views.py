@@ -10,10 +10,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 
-from mesg.models import Category, Message
+from mesg.models import Category, Message, UserDetails
 from django.utils import timezone
 
-from mesg.forms import CreateMessageForm
+from mesg.forms import CreateMessageForm, UserConfigForm
 
 def index(request):
     category_list = [
@@ -148,7 +148,7 @@ def create_message(request):
         if form.is_valid():
             data = form.cleaned_data
             try:
-                category=Category.objects.get(pk=data['category'])
+                category = Category.objects.get(pk=data['category'])
             except ObjectDoesNotExist:
                 return HttpResponseBadRequest
 
@@ -184,3 +184,27 @@ def expire_message(request, message_id):
         )
     else:
         return HttpResponseBadRequest
+
+@login_required
+def user_config(request):
+    if request.method == 'POST':
+        form = UserConfigForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            try:
+                category = Category.objects.get(pk=data['category'])
+            except ObjectDoesNotExist:
+                return HttpResponseBadRequest
+
+        preferences, created = UserDetails.objects.update_or_create(
+                user=request.user,
+                defaults={'category_choice': category},
+        )
+
+        preferences.save()
+
+        return HttpResponseRedirect(reverse('mesg:index'))
+    else:
+        form = UserConfigForm()
+
+    return render(request, 'mesg/user_config.html', {'form': form})

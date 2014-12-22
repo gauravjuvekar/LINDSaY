@@ -1,5 +1,5 @@
 from django import forms
-from mesg.models import Category, Message
+from mesg.models import Category
 
 
 class CreateMessageForm(forms.Form):
@@ -26,3 +26,17 @@ class CreateMessageForm(forms.Form):
             label='Category',
     )
 
+
+class UserConfigForm(forms.Form):
+
+    choices = []
+    for division in Category.objects.filter(parent=None):
+        choices.append((division.id, division.name))
+        for subdivision in division.subcategories.all():
+            choices.append((subdivision.id, '----' + subdivision.name))
+
+    category = forms.ChoiceField(
+            choices=choices,
+            label='Category',
+    )
+    
