@@ -133,7 +133,7 @@ def user_login(request):
 
 def user_logout(request):
     logout(request)
-    next_url = request.GET['next']
+    next_url = request.GET.get('next', None)
     if next_url:
         return HttpResponseRedirect(next_url)
     else:
