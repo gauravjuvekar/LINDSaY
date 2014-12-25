@@ -205,6 +205,12 @@ def user_config(request):
 
         return HttpResponseRedirect(reverse('mesg:index'))
     else:
-        form = UserConfigForm()
+        # Set an initial value of category selection if already set
+        try:
+            initial_category = request.user.details.category_choice
+        except UserDetails.DoesNotExist:
+            initial_category = None
+
+        form = UserConfigForm(initial={'category': initial_category})
 
     return render(request, 'mesg/user_config.html', {'form': form})
