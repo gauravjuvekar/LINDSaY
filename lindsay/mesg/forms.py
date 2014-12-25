@@ -12,10 +12,10 @@ class CreateMessageForm(forms.Form):
 
     expires_date = forms.DateField(
             label='Expire this message after',
-            required=False
+            required=False,
     )
 
-    choices = []
+    choices = [('','----')]
     for division in Category.objects.filter(parent=None):
         choices.append((division.id, division.name))
         for subdivision in division.subcategories.all():
@@ -24,12 +24,13 @@ class CreateMessageForm(forms.Form):
     category = forms.ChoiceField(
             choices=choices,
             label='Category',
+            required=True
     )
 
 
 class UserConfigForm(forms.Form):
 
-    choices = []
+    choices = [('','----')]
     for division in Category.objects.filter(parent=None):
         choices.append((division.id, division.name))
         for subdivision in division.subcategories.all():
@@ -38,5 +39,6 @@ class UserConfigForm(forms.Form):
     category = forms.ChoiceField(
             choices=choices,
             label='Category',
+            required=True,
     )
     
