@@ -1,0 +1,18 @@
+{% extends "mesg/base.html" %}
+
+{% block body %}
+	<ul>
+		{% for division, subdivisions_list in divisions_list %}
+			<li><a href="{% url 'mesg:division' division_name=division.name %}">{{ division.name }}</a></li>
+			<ul>
+				{% for subdivision in subdivisions_list %}
+					<li><a href="{% url 'mesg:subdivision' division_name=division.name subdivision_name=subdivision.name %}">{{ subdivision.name }}</a></li>
+				{% empty %}
+					No subdivisions available
+				{% endfor %}
+			</ul>
+		{% empty %}
+			No divisions available
+		{% endfor %}
+	</ul>
+{% endblock body %}

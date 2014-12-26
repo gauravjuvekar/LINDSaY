@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>{% block title %}{% endblock title %} LINDSaY</title>	
+	</head>
+	<body>
+		<div class="session_header" id="loginstate">
+			{% if user.is_authenticated %}
+				Logged in as: {{ user.username }} - <a href="{% url 'mesg:logout' %}?next={% firstof request.path '/' %}">Logout</a>
+			{% else %}
+			<a href="{% url 'mesg:login' %}?next={% firstof request.path '/' %}">Login</a>
+			{% endif %}
+		</div>
+		<hr />
+		{% block body %}{% endblock body %}
+	</body>
+</html>
+

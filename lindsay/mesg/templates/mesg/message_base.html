@@ -1,0 +1,17 @@
+{% extends "mesg/base.html" %}
+
+
+{% block title %}{% endblock title %}
+
+
+{% block body %}
+{% block message_text %}{% endblock message_text %}
+<hr />
+Author: {% block author_name %}{% endblock author_name %}
+<br />
+Posted: {% block pub_date %}{% endblock pub_date %}
+<br />
+Expires in: {% block expires_date %}{% endblock expires_date %}
+<br />
+Posted in: {% block category_breadcrumbs %}{% endblock category_breadcrumbs %}
+{% endblock body %}

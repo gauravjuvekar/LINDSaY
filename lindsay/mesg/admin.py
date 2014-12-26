@@ -1,3 +1,7 @@
 from django.contrib import admin
+from mesg.models import Category, Message, UserDetails
 
-# Register your models here.
+admin.site.register(UserDetails)
+admin.site.register(Category)
+admin.site.register(Message)
+

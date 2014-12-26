@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.syndication',
     'mesg',
 )
 
@@ -49,7 +50,17 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.request',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+)
+
 ROOT_URLCONF = 'lindsay.urls'
+LOGIN_URL = 'mesg:login'
 
 WSGI_APPLICATION = 'lindsay.wsgi.application'
 
@@ -94,13 +105,22 @@ if os.environ.get('TRAVIS') == 'true':
     }
 
 
+# Auth
+
+
+AUTHENTICATION_BACKENDS = (
+#    'django_auth_ldap.backend.LDAPbackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+AUTH_LDAP_SERVER_URI = 'ldap://localhost:80'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 

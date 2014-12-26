@@ -1,0 +1,30 @@
+<h1>Login</h1>
+
+{% if user.is_authenticated %}
+	You are already logged in as {{ user.username }} <br />
+	<a href="{% url 'mesg:logout' %}">Logout</a>
+{% else %}
+	<form id="login_form" method="post" action="{% url 'mesg:login' %}">
+		{% csrf_token %}
+		<label for="username">Username: </label>
+		<input type="text" name="username" value="" />	
+		<br />
+		<label for="password">Password: </label>
+		<input type="password" name="password" value="" />	
+		<br />
+
+		{# next can be passed either as a context variable or get parameter #}
+		{% if next %}
+			<input type="hidden" name="next" value="{{ next }}" />
+		{% else %}
+			<input type="hidden" name="next" value="{{ request.GET.next }}" />
+		{% endif %}
+		
+		{% if state %}
+			<b>{{ state }}</b>
+			<br />
+		{% endif %}
+
+		<input type="submit" value="Login" />
+	</form>
+{% endif %}

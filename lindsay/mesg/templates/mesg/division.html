@@ -1,0 +1,41 @@
+{% extends "mesg/division_base.html" %}
+
+
+{% block title %}
+Messages for {{ division.name }} -
+{% endblock title %}
+
+
+{% block division_name %}
+{{ division.name }}
+{% endblock division_name %}
+
+
+{% block subdivisions_list %}
+<ul>
+	{% for subdivision in subdivisions_list %}
+		<li>
+			<a href="{% url 'mesg:subdivision' division_name=division.name subdivision_name=subdivision.name %}">
+				{{ subdivision.name }}
+			</a>
+		</li>
+	{% empty %}
+		No subdivisions available
+	{% endfor %}
+</ul>
+{% endblock subdivisions_list %}
+
+
+{% block messages %}
+<ul>
+	{% for message in messages %}
+		<li>
+			<a href="{% url 'mesg:message' message_id=message.id %}">
+				{{ message.message_text }}
+			</a>
+		</li>
+	{% empty %}
+		No messages available
+	{% endfor %}
+</ul>
+{% endblock messages %}
