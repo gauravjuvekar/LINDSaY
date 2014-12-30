@@ -16,15 +16,16 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'xm*!xxw@$e*9)fh!*28z90o$yb-&2*)eu18tehf9p(&f^r)is)'
+# NOTE: SECURITY WARNING: keep the secret key used in production secret!
+with open('~/secret_key.txt') as secret_key_file:
+    SECRET_KEY = secret_key_file.read().strip()
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# NOTE: SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+TEMPLATE_DEBUG = False
 
-TEMPLATE_DEBUG = True
-
-ALLOWED_HOSTS = []
+# TODO:
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -73,40 +74,15 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'django_db',
         'USER': 'djangouser',
+        # TODO: SECURITY DONT HARDCODE DATABASE CREDENTIALS
         'PASSWORD': 'djangouserpassword',
         #'HOST': '127.0.0.1',
         #'PORT': '3306',
     }
 }
 
-import sys
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'django_db',
-            'USER': 'djangotestuser',
-            'PASSWORD': 'djangotestuserpassword',
-            #'HOST': '127.0.0.1',
-            #'PORT': '3306',
-        }
-    }
-    
-if os.environ.get('TRAVIS') == 'true':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'myapp_test',
-            'USER': 'travis',
-            'PASSWORD': '',
-            #'HOST': '127.0.0.1',
-            #'PORT': '3306',
-        }
-    }
-
 
 # Auth
-
 
 AUTHENTICATION_BACKENDS = (
 #    'django_auth_ldap.backend.LDAPbackend',
