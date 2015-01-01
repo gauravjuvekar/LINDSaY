@@ -46,6 +46,14 @@ def ensure_requirements_dev_packages():
     ]
     package_ensure(package_list)
 
+def upgrade_pip():
+    with mode_sudo():
+        python_package_upgrade_pip("pip")
+
+def install_virtual_envs():
+    with mode_sudo():
+        python_package_ensure_pip("virtualenvwrapper")
+
 
 @task
 def provision():
@@ -53,4 +61,6 @@ def provision():
     execute(ensure_core_packages)
     execute(ensure_apache)
     execute(ensure_mysql)
+    execute(upgrade_pip)
+    execute(install_virtual_envs)
 
