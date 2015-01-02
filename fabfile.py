@@ -9,7 +9,7 @@ env.host_string = 'gaurav@localhost:2022'
 
 env.PROJECT_NAME = "LINDSaY"
 env.VIRTUAL_ENV_NAME = env.PROJECT_NAME
-env.VIRTUAL_ENV_CONFIG_FILE = '.profile'
+env.VIRTUAL_ENV_CONFIG_FILE = '.bashrc'
 
 env.DJANGO_USERNAME = "djangouser"
 env.DJANGO_USER_PASSWORD = b64encode(os.urandom(64))
@@ -22,18 +22,26 @@ env.DB_USER_PASSWORD = b64encode(os.urandom(64))
 env.GIT_REPO = "https://github.com/gauravjuvekar/LINDSaY.git"
 env.GIT_BRANCH = "prod"
 
-class sudosu:
-    def __init__(self, user):
-        self.user = user
+
+class sudo_login:
+    """
+    Executes sudo with -i (as a login shell)
+    """
+    def __init__(self, sudo_user):
+        self.user = sudo_user
     def __enter__(self):
         self.old_sudo_prefix = env.sudo_prefix
         self.old_sudo_user, env.sudo_user = env.sudo_user, self.user
-        env.sudo_prefix = "sudo -S -p '%(sudo_prompt)s' su - %(sudo_user)s -c"
+        env.sudo_prefix = "sudo -S -i -p '%(sudo_prompt)s' " 
     def __exit__(self, a, b, c):
         env.sudo_prefix = self.old_sudo_prefix
         env.sudo_user = self.old_sudo_user
+ 
 
 def update_package_cache():
+    """
+    apt-get update
+    """
     package_update()
 
 
@@ -50,6 +58,7 @@ def ensure_core_packages():
             "openssl",
     ]
     package_ensure(package_list)
+
 
 def ensure_apache():
     package_list = [
@@ -70,6 +79,9 @@ def ensure_mysql():
 
 
 def ensure_requirements_dev_packages():
+    """
+    Requred when pip compiles some packages further down
+    """
     package_list = [
             "libmysqlclient-dev",
             "libldap2-dev",
@@ -78,10 +90,12 @@ def ensure_requirements_dev_packages():
     ]
     package_ensure(package_list)
 
+
 def upgrade_pip():
     execute(ensure_core_packages)
     with mode_sudo():
         python_package_upgrade_pip("pip")
+
 
 def ensure_virtual_envs():
     execute(upgrade_pip)
@@ -101,9 +115,11 @@ def provision():
 
 
 @task
-def setup_db():
+def ensure_db():
     execute(ensure_mysql)
-    create_db_command = ("CREATE DATABASE `{DB_NAME}`; ".format(**env))
+    create_db_command = (
+            "CREATE DATABASE IF NOT EXISTS `{DB_NAME}`; " .format(**env)
+    )
     grant_db_command = (
             "GRANT ALL PRIVILEGES ON `{DB_NAME}`.* TO `{DB_USERNAME}` "
             "IDENTIFIED BY \"{DB_USER_PASSWORD}\"; "
@@ -117,9 +133,8 @@ def setup_db():
 
 def ensure_django_user():
     user_ensure(env.DJANGO_USERNAME, passwd=env.DJANGO_USER_PASSWORD)
-    env.DJANGO_USER_HOME_PATH = os.path.join(
-            '/', 'home', env.DJANGO_USERNAME,
-    )
+    env.DJANGO_USER_HOME_PATH = os.path.join('/', 'home', env.DJANGO_USERNAME)
+
 
 def ensure_django_user_tree():
     execute(ensure_django_user)
@@ -132,11 +147,13 @@ def ensure_django_user_tree():
             dir_ensure(top_level_dir)
             env.DJANGO_USER_TOPLEVEL_PATH = top_level_dir
 
+
+@task
 def ensure_virtual_env_config():
     execute(ensure_virtual_envs)
     execute(ensure_django_user)
 
-    with settings(sudo_user = env.DJANGO_USERNAME):
+    with sudo_login(env.DJANGO_USERNAME):
         with mode_user(env.DJANGO_USERNAME):
             file_name = os.path.join(
                     env.DJANGO_USER_HOME_PATH,
@@ -158,26 +175,23 @@ def ensure_virtual_env_config():
 
 def ensure_project_env():
     execute(ensure_virtual_env_config)
-    with settings(sudo_user = env.DJANGO_USERNAME):
+    with sudo_login(env.DJANGO_USERNAME):
         with mode_user(env.DJANGO_USERNAME):
-            with prefix('source {VIRTUAL_ENV_CONFIG_FILE_PATH}'
+            run("mkvirtualenv --no-site-packages \"{VIRTUAL_ENV_NAME}\""
                     .format(**env)
-            ):
-                run("mkvirtualenv --no-site-packages \"{VIRTUAL_ENV_NAME}\""
-                        .format(**env)
-                )
+            )
 
-                env.WORKON = os.path.join(
-                        env.DJANGO_USER_HOME_PATH,
-                        '.virtualenvs',
-                        env.VIRTUAL_ENV_NAME,
-                )
+            env.WORKON = os.path.join(
+                    env.DJANGO_USER_HOME_PATH,
+                    '.virtualenvs',
+                    env.VIRTUAL_ENV_NAME,
+            )
 
 
 def ensure_code():
     execute(ensure_project_env)
     execute(ensure_django_user_tree)
-    with settings(sudo_user = env.DJANGO_USERNAME):
+    with sudo_login(env.DJANGO_USERNAME):
         with mode_user(env.DJANGO_USERNAME):
             with virtualenv(env.WORKON):
                 env.DJANGO_PROJECT_PATH = os.path.join(
@@ -198,7 +212,7 @@ def ensure_code():
 def ensure_project_deps():
     execute(ensure_requirements_dev_packages)
     execute(ensure_code)
-    with sudosu(env.DJANGO_USERNAME):
+    with sudo_login(env.DJANGO_USERNAME):
         with mode_user(env.DJANGO_USERNAME):
             with virtualenv(env.WORKON):
                 with cd(env.DJANGO_PROJECT_PATH):
