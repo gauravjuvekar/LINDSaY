@@ -114,7 +114,6 @@ def provision():
     execute(ensure_virtual_envs)
 
 
-@task
 def ensure_db():
     execute(ensure_mysql)
     create_db_command = (
@@ -133,6 +132,8 @@ def ensure_db():
 
 def ensure_django_user():
     user_ensure(env.DJANGO_USERNAME, passwd=env.DJANGO_USER_PASSWORD)
+    # Use bash as virtualenvs would mostly be configured in .bashrc
+    sudo("chsh -s /bin/bash {DJANGO_USERNAME}".format(**env))
     env.DJANGO_USER_HOME_PATH = os.path.join('/', 'home', env.DJANGO_USERNAME)
 
 
@@ -177,15 +178,15 @@ def ensure_project_env():
     execute(ensure_virtual_env_config)
     with sudo_login(env.DJANGO_USERNAME):
         with mode_user(env.DJANGO_USERNAME):
-            run("mkvirtualenv --no-site-packages \"{VIRTUAL_ENV_NAME}\""
-                    .format(**env)
-            )
-
             env.WORKON = os.path.join(
                     env.DJANGO_USER_HOME_PATH,
                     '.virtualenvs',
                     env.VIRTUAL_ENV_NAME,
             )
+            if not dir_exists(env.WORKON):
+                run("mkvirtualenv --no-site-packages \"{VIRTUAL_ENV_NAME}\""
+                        .format(**env)
+                )
 
 
 def ensure_code():
@@ -207,6 +208,7 @@ def ensure_code():
                         run("git clone {GIT_REPO} --branch {GIT_BRANCH}"
                                 .format(**env)
                         )
+
 
 @task
 def ensure_project_deps():
