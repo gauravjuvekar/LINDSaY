@@ -12,20 +12,35 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+# Import runtime configuraton from project root generated at deployment
+from .. import runtime_configuration
+# This is a python file with the following parameters set
+# SECRET_KEY
+# ALLOWED_HOSTS
+#
+# DATABASE_NAME
+# DATABASE_USER
+# DATABASE_PASSWORD
+## Optionally 
+# DATABASE_HOST
+# DATABASE_PORT
+# 
+# STATIC_ROOT
+
+
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # NOTE: SECURITY WARNING: keep the secret key used in production secret!
-with open('~/secret_key.txt') as secret_key_file:
-    SECRET_KEY = secret_key_file.read().strip()
+SECRET_KEY = runtime_configuration.SECRET_KEY
 
 # NOTE: SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 TEMPLATE_DEBUG = False
 
-# TODO:
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = runtime_configuration.ALLOWED_HOSTS
 
 
 # Application definition
@@ -72,10 +87,9 @@ WSGI_APPLICATION = 'lindsay.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'django_db',
-        'USER': 'djangouser',
-        # TODO: SECURITY DONT HARDCODE DATABASE CREDENTIALS
-        'PASSWORD': 'djangouserpassword',
+        'NAME': runtime_configuration.DATABASE_NAME,
+        'USER': runtime_configuration.DATABASE_USER,
+        'PASSWORD': runtime_configuration.DATABASE_PASSWORD
         #'HOST': '127.0.0.1',
         #'PORT': '3306',
     }
@@ -108,4 +122,5 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
+STATIC_ROOT = runtime_configuration.STATIC_ROOT
 STATIC_URL = '/static/'
