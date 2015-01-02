@@ -167,7 +167,7 @@ def ensure_virtual_env_config():
                             "export WORKON_HOME="
                             "\"{DJANGO_USER_HOME_PATH}/.virtualenvs\""
                             .format(**env),
-                            "source /usr/local/bin/virtualenvwrapper.sh",
+                            ". /usr/local/bin/virtualenvwrapper.sh",
                     )
             )
             env.VIRTUAL_ENV_CONFIG_FILE_PATH = file_name
