@@ -14,12 +14,18 @@ env.host_string = 'gaurav@localhost:2022'
 env.PROJECT_NAME = "LINDSaY"
 env.VIRTUAL_ENV_NAME = env.PROJECT_NAME 
 env.VIRTUAL_ENV_CONFIG_FILE = '.bashrc'
+env.RUNTIME_CONFIG_FILE = "runtime_configuration.py"
 
 env.DJANGO_USERNAME = "djangouser"
 env.DJANGO_USER_PASSWORD = b64encode(os.urandom(64))
 env.DJANGO_USER_TOPLEVEL = "django_projects"
 
-env.DB_NAME = "django_db"
+env.SECRET_KEY = b64encode(os.urandom(64))
+env.KEEP_EXISTING_SECRET_KEY = True
+
+env.ALLOWED_HOSTS = ['*']
+env.DJANGO_STATIC_ROOT = os.path.join('/', 'var', 'www', 'static')
+
 env.DB_USERNAME = env.DJANGO_USERNAME
 env.DB_USER_PASSWORD = b64encode(os.urandom(64))
 
@@ -171,7 +177,6 @@ def ensure_virtual_env_config():
 ##############################################################################
 # Virtual env
 ##############################################################################
-
 def ensure_project_env():
     execute(ensure_virtual_env_config)
     with sudo_login(env.DJANGO_USERNAME):
@@ -243,4 +248,34 @@ def ensure_db():
     )
 
 
+@task
+def ensure_project_configuration():
+    execute(ensure_project_deps)
+    execute(ensure_db)
+    with sudo_login(env.DJANGO_USERNAME):
+        with mode_user(env.DJANGO_USERNAME):
+            with cd(env.DJANGO_PROJECT_PATH):
+                file_ensure("__init__.py")
+                file_ensure(env.RUNTIME_CONFIG_FILE)
+
+                if env.KEEP_EXISTING_SECRET_KEY:
+                    env.SECRET_KEY = text_get_line(
+                            file_read(env.RUNTIME_CONFIG_FILE),
+                            lambda _:_.startswith("SECRET_KEY")
+                    ).partition("=")[2].strip('"\'')
+               
+                file_write(
+                        env.RUNTIME_CONFIG_FILE,
+                        text_template(
+                                text_strip_margin(
+                                    """
+                                    |SECRET_KEY='${SECRET_KEY}'
+                                    |ALLOWED_HOSTS=${ALLOWED_HOSTS}
+                                    |DATABASE_NAME='${DB_NAME}'
+                                    |DATABASE_USER='${DB_USERNAME}'
+                                    |DATABASE_PASSWORD='${DB_USER_PASSWORD}'
+                                    |STATIC_ROOT='${DJANGO_STATIC_ROOT}'
+                                    """
+                                ), env
+                        )
 
