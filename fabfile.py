@@ -5,10 +5,14 @@ from fabvenv import virtualenv
 from base64 import b64encode
 import os
 
+
+##############################################################################
+# Configuration
+##############################################################################
 env.host_string = 'gaurav@localhost:2022'
 
 env.PROJECT_NAME = "LINDSaY"
-env.VIRTUAL_ENV_NAME = env.PROJECT_NAME
+env.VIRTUAL_ENV_NAME = env.PROJECT_NAME 
 env.VIRTUAL_ENV_CONFIG_FILE = '.bashrc'
 
 env.DJANGO_USERNAME = "djangouser"
@@ -38,6 +42,9 @@ class sudo_login:
         env.sudo_user = self.old_sudo_user
  
 
+##############################################################################
+# Packages
+##############################################################################
 def update_package_cache():
     """
     apt-get update
@@ -114,22 +121,9 @@ def provision():
     execute(ensure_virtual_envs)
 
 
-def ensure_db():
-    execute(ensure_mysql)
-    create_db_command = (
-            "CREATE DATABASE IF NOT EXISTS `{DB_NAME}`; " .format(**env)
-    )
-    grant_db_command = (
-            "GRANT ALL PRIVILEGES ON `{DB_NAME}`.* TO `{DB_USERNAME}` "
-            "IDENTIFIED BY \"{DB_USER_PASSWORD}\"; "
-            "FLUSH PRIVILEGES;"
-            .format(**env)
-    )
-    run("mysql -u root -e '{command}'"
-            .format(command=';'.join((create_db_command, grant_db_command)))
-    )
-
-
+##############################################################################
+# Django user
+##############################################################################
 def ensure_django_user():
     user_ensure(env.DJANGO_USERNAME, passwd=env.DJANGO_USER_PASSWORD)
     # Use bash as virtualenvs would mostly be configured in .bashrc
@@ -174,6 +168,10 @@ def ensure_virtual_env_config():
             env.VIRTUAL_ENV_CONFIG_FILE_PATH = file_name
 
 
+##############################################################################
+# Virtual env
+##############################################################################
+
 def ensure_project_env():
     execute(ensure_virtual_env_config)
     with sudo_login(env.DJANGO_USERNAME):
@@ -188,6 +186,10 @@ def ensure_project_env():
                         .format(**env)
                 )
 
+
+##############################################################################
+# Project code and dependencies
+##############################################################################
 
 def ensure_code():
     execute(ensure_project_env)
@@ -219,5 +221,26 @@ def ensure_project_deps():
             with virtualenv(env.WORKON):
                 with cd(env.DJANGO_PROJECT_PATH):
                     python_package_ensure_pip(r="requirements.txt")
+
+
+##############################################################################
+# Database
+##############################################################################
+
+def ensure_db():
+    execute(ensure_mysql)
+    create_db_command = (
+            "CREATE DATABASE IF NOT EXISTS `{DB_NAME}`; " .format(**env)
+    )
+    grant_db_command = (
+            "GRANT ALL PRIVILEGES ON `{DB_NAME}`.* TO `{DB_USERNAME}` "
+            "IDENTIFIED BY \"{DB_USER_PASSWORD}\"; "
+            "FLUSH PRIVILEGES;"
+            .format(**env)
+    )
+    run("mysql -u root -e '{command}'"
+            .format(command=';'.join((create_db_command, grant_db_command)))
+    )
+
 
 
