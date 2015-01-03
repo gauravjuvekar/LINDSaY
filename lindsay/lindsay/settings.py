@@ -10,10 +10,11 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Import runtime configuraton from project root generated at deployment
-from .. import runtime_configuration
+os.sys.path.append(os.path.dirname(os.path.dirname(BASE_DIR)))
+from LINDSaY import runtime_configuration
 # This is a python file with the following parameters set
 # SECRET_KEY
 # ALLOWED_HOSTS
