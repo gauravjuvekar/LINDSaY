@@ -45,6 +45,19 @@ env.GIT_REPO = "https://github.com/gauravjuvekar/LINDSaY.git"
 env.GIT_BRANCH = "prod"
 
 
+##############################################################################
+# Extending fabric
+##############################################################################
+
+def once(func):
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return func(*args, **kwargs)
+
+    wrapper.has_run = False
+    return wrapper
+
 class sudo_login:
     """
     Executes sudo with -i (as a login shell)
@@ -62,6 +75,9 @@ class sudo_login:
 ##############################################################################
 # Packages
 ##############################################################################
+
+
+@once
 def update_package_cache():
     """
     apt-get update
@@ -69,6 +85,7 @@ def update_package_cache():
     package_update()
 
 
+@once
 def ensure_core_packages():
     package_list = [
             "coreutils",
@@ -84,6 +101,7 @@ def ensure_core_packages():
     package_ensure(package_list)
 
 
+@once
 def ensure_apache():
     package_list = [
             "apache2",
@@ -95,6 +113,7 @@ def ensure_apache():
     package_ensure(package_list)
 
 
+@once
 def ensure_mysql():
     package_list = [
             "mysql-server",
@@ -102,6 +121,7 @@ def ensure_mysql():
     package_ensure(package_list)
 
 
+@once
 def ensure_requirements_dev_packages():
     """
     Requred when pip compiles some packages further down
@@ -115,21 +135,24 @@ def ensure_requirements_dev_packages():
     package_ensure(package_list)
 
 
+@once
 def upgrade_pip():
     execute(ensure_core_packages)
     with mode_sudo():
         python_package_upgrade_pip("pip")
 
 
+@once
 def ensure_virtual_envs():
     execute(upgrade_pip)
     with mode_sudo():
         python_package_ensure_pip("virtualenvwrapper")
 
 
+@once
 @task
 def provision():
-    #execute(update_package_cache)
+    execute(update_package_cache)
     execute(ensure_core_packages)
     execute(ensure_apache)
     execute(ensure_mysql)
@@ -141,6 +164,8 @@ def provision():
 ##############################################################################
 # Django user
 ##############################################################################
+
+@once
 def ensure_django_user():
     user_ensure(env.DJANGO_USERNAME, passwd=env.DJANGO_USER_PASSWORD)
     # Use bash as virtualenvs would mostly be configured in .bashrc
@@ -148,6 +173,7 @@ def ensure_django_user():
     env.DJANGO_USER_HOME_PATH = os.path.join('/', 'home', env.DJANGO_USERNAME)
 
 
+@once
 def ensure_django_user_tree():
     execute(ensure_django_user)
     with settings(sudo_user = env.DJANGO_USERNAME):
@@ -160,6 +186,7 @@ def ensure_django_user_tree():
             env.DJANGO_USER_TOPLEVEL_PATH = top_level_dir
 
 
+@once
 def ensure_virtual_env_config():
     execute(ensure_virtual_envs)
     execute(ensure_django_user)
@@ -187,6 +214,8 @@ def ensure_virtual_env_config():
 ##############################################################################
 # Virtual env
 ##############################################################################
+
+@once
 def ensure_project_env():
     execute(ensure_virtual_env_config)
     with sudo_login(env.DJANGO_USERNAME):
@@ -214,6 +243,7 @@ def ensure_project_env():
 # Project code and dependencies
 ##############################################################################
 
+@once
 def ensure_code():
     execute(ensure_project_env)
     execute(ensure_django_user_tree)
@@ -240,6 +270,7 @@ def ensure_code():
                 )
 
 
+@once
 def ensure_project_deps():
     execute(ensure_requirements_dev_packages)
     execute(ensure_code)
@@ -250,6 +281,7 @@ def ensure_project_deps():
                     python_package_ensure_pip(r="requirements.txt")
 
 
+@once
 def ensure_project_configuration():
     execute(ensure_project_deps)
     with sudo_login(env.DJANGO_USERNAME):
@@ -287,6 +319,7 @@ def ensure_project_configuration():
 # Database
 ##############################################################################
 
+@once
 def ensure_db():
     execute(ensure_mysql)
     create_db_command = (
@@ -303,6 +336,7 @@ def ensure_db():
     )
 
 
+@once
 @task
 def sync_db():
     execute(ensure_db)
@@ -328,6 +362,7 @@ def restart_web_server():
     sudo("apache2ctl restart")
 
 
+@once
 def configure_virtual_host():
     execute(ensure_apache)
     execute(ensure_project_configuration)
@@ -356,6 +391,7 @@ def configure_virtual_host():
             )
 
 
+@once
 def configure_wsgi():
     with mode_sudo():
         with cd(os.path.join('/', 'var', 'www')):
@@ -383,11 +419,13 @@ def configure_wsgi():
                     )
             )
 
+@once
 def collect_static():
     execute(configure_wsgi)
     with virtualenv(env.WORKON):
         with cd(env.PROJECT_MANAGE_PY_DIR):
             sudo("python manage.py collectstatic --noinput")
+
 
 def enable_site():
     execute(configure_virtual_host)
@@ -399,7 +437,7 @@ def enable_site():
 
 
 ##############################################################################
-# Deploy site
+# Tasks
 ##############################################################################
 
 @task
