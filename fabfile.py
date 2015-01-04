@@ -12,8 +12,11 @@ import os
 env.host_string = 'gaurav@localhost:2022'
 
 env.PROJECT_NAME = "LINDSaY"
+env.APP_NAME = "mesg"
+env.PROJECT_NAME_PATHS = env.PROJECT_NAME.lower()
+
 env.VIRTUAL_ENV_NAME = env.PROJECT_NAME 
-env.VIRTUAL_ENV_CONFIG_FILE = '.bashrc'
+env.VIRTUAL_ENV_CONFIG_FILE = '.profile'
 env.RUNTIME_CONFIG_FILE = "runtime_configuration.py"
 
 env.DJANGO_USERNAME = "djangouser"
@@ -23,9 +26,18 @@ env.DJANGO_USER_TOPLEVEL = "django_projects"
 env.SECRET_KEY = b64encode(os.urandom(64))
 env.KEEP_EXISTING_SECRET_KEY = True
 
+env.SITE_NAME = 'lindsay.com'
 env.ALLOWED_HOSTS = ['*']
-env.DJANGO_STATIC_ROOT = os.path.join('/', 'var', 'www', 'static')
+env.STATIC_ROOT = os.path.join('/', 'var', 'www',
+        env.SITE_NAME, 'static'
+)
+env.STATIC_URL = '/static/'
+env.SERVER_ADMIN_MAIL = 'webmaster@localhost'
+env.WSGI_SCRIPT_PATH = os.path.join('/', 'var', 'www',
+        env.SITE_NAME, 'index.wsgi'
+)
 
+env.DB_NAME = "django_db"
 env.DB_USERNAME = env.DJANGO_USERNAME
 env.DB_USER_PASSWORD = b64encode(os.urandom(64))
 
@@ -46,7 +58,6 @@ class sudo_login:
     def __exit__(self, a, b, c):
         env.sudo_prefix = self.old_sudo_prefix
         env.sudo_user = self.old_sudo_user
- 
 
 ##############################################################################
 # Packages
@@ -149,7 +160,6 @@ def ensure_django_user_tree():
             env.DJANGO_USER_TOPLEVEL_PATH = top_level_dir
 
 
-@task
 def ensure_virtual_env_config():
     execute(ensure_virtual_envs)
     execute(ensure_django_user)
@@ -190,6 +200,14 @@ def ensure_project_env():
                 run("mkvirtualenv --no-site-packages \"{VIRTUAL_ENV_NAME}\""
                         .format(**env)
                 )
+            env.VIRTUAL_ENV_SITE_PACKAGES = os.path.join(
+                    env.WORKON,
+                    'local', 'lib', 'python-2.7', 'site-packages',
+            )
+            env.VIRTUAL_ENV_ACTIVATE_PATH = os.path.join(
+                    env.WORKON,
+                    'bin', 'activate_this.py',
+            )
 
 
 ##############################################################################
@@ -216,8 +234,12 @@ def ensure_code():
                                 .format(**env)
                         )
 
+                env.PROJECT_MANAGE_PY_DIR = os.path.join(
+                        env.DJANGO_PROJECT_PATH,
+                        env.PROJECT_NAME_PATHS,
+                )
 
-@task
+
 def ensure_project_deps():
     execute(ensure_requirements_dev_packages)
     execute(ensure_code)
@@ -227,6 +249,39 @@ def ensure_project_deps():
                 with cd(env.DJANGO_PROJECT_PATH):
                     python_package_ensure_pip(r="requirements.txt")
 
+
+def ensure_project_configuration():
+    execute(ensure_project_deps)
+    with sudo_login(env.DJANGO_USERNAME):
+        with mode_user(env.DJANGO_USERNAME):
+            with cd(env.DJANGO_PROJECT_PATH):
+                file_ensure("__init__.py")
+                file_ensure(env.RUNTIME_CONFIG_FILE)
+
+                if env.KEEP_EXISTING_SECRET_KEY:
+                    previous_key = text_get_line(
+                            file_read(env.RUNTIME_CONFIG_FILE),
+                            lambda _:_.startswith("SECRET_KEY")
+                    ).partition("=")[2].strip('"\'')
+                    if (previous_key != '') and (len(previous_key) > 16):
+                        env.SECRET_KEY = previous_key
+
+                file_write(
+                        env.RUNTIME_CONFIG_FILE,
+                        text_template(
+                                text_strip_margin(
+                                    """
+                                    |SECRET_KEY='${SECRET_KEY}'
+                                    |ALLOWED_HOSTS=${ALLOWED_HOSTS}
+                                    |DATABASE_NAME='${DB_NAME}'
+                                    |DATABASE_USER='${DB_USERNAME}'
+                                    |DATABASE_PASSWORD='${DB_USER_PASSWORD}'
+                                    |STATIC_ROOT='${STATIC_ROOT}'
+                                    |STATIC_URL='${STATIC_URL}'
+                                    """
+                                ), env
+                        )
+                )
 
 ##############################################################################
 # Database
@@ -249,33 +304,106 @@ def ensure_db():
 
 
 @task
-def ensure_project_configuration():
-    execute(ensure_project_deps)
+def sync_db():
     execute(ensure_db)
+    execute(ensure_project_configuration)
     with sudo_login(env.DJANGO_USERNAME):
         with mode_user(env.DJANGO_USERNAME):
-            with cd(env.DJANGO_PROJECT_PATH):
-                file_ensure("__init__.py")
-                file_ensure(env.RUNTIME_CONFIG_FILE)
+            with virtualenv(env.WORKON):
+                with cd(env.PROJECT_MANAGE_PY_DIR):
+                    run("python manage.py makemigrations {APP_NAME}"
+                            .format(**env)
+                    )
 
-                if env.KEEP_EXISTING_SECRET_KEY:
-                    env.SECRET_KEY = text_get_line(
-                            file_read(env.RUNTIME_CONFIG_FILE),
-                            lambda _:_.startswith("SECRET_KEY")
-                    ).partition("=")[2].strip('"\'')
-               
-                file_write(
-                        env.RUNTIME_CONFIG_FILE,
-                        text_template(
-                                text_strip_margin(
-                                    """
-                                    |SECRET_KEY='${SECRET_KEY}'
-                                    |ALLOWED_HOSTS=${ALLOWED_HOSTS}
-                                    |DATABASE_NAME='${DB_NAME}'
-                                    |DATABASE_USER='${DB_USERNAME}'
-                                    |DATABASE_PASSWORD='${DB_USER_PASSWORD}'
-                                    |STATIC_ROOT='${DJANGO_STATIC_ROOT}'
-                                    """
-                                ), env
-                        )
+                    run("python manage.py migrate {APP_NAME}"
+                            .format(**env)
+                    )
+                    run("python manage.py syncdb")
 
+##############################################################################
+# Web server
+##############################################################################
+
+def restart_web_server():
+    sudo("apache2ctl restart")
+
+
+def configure_virtual_host():
+    execute(ensure_apache)
+    execute(ensure_project_configuration)
+    with mode_sudo():
+        with cd(os.path.join('/', 'etc', 'apache2', 'sites-available')):
+            file_write(
+                    '.'.join([env.SITE_NAME, 'conf']),
+                    text_template(
+                            text_strip_margin(
+                                    """
+                                    |<VirtualHost *:80>
+                                    |    ServerAdmin ${SERVER_ADMIN_MAIL}
+                                    |    ServerName ${SITE_NAME}
+                                    |    ServerAlias www.${SITE_NAME}
+                                    |
+                                    |    WSGIScriptAlias / ${WSGI_SCRIPT_PATH}
+                                    |
+                                    |    Alias ${STATIC_URL} ${STATIC_ROOT}
+                                    |    <Location "${STATIC_URL}">
+                                    |        Options -Indexes
+                                    |    </Location>
+                                    |</VirtualHost>
+                                    """
+                            ), env
+                    )
+            )
+
+
+def configure_wsgi():
+    with mode_sudo():
+        with cd(os.path.join('/', 'var', 'www')):
+            dir_ensure(env.SITE_NAME)
+            file_write(
+                    "index.wsgi",
+                    text_template(
+                            text_strip_margin(
+                                    """
+|import os
+|import sys
+|import site
+|
+|site.addsitedir('${VIRTUAL_ENV_SITE_PACKAGES}')
+|sys.path.append('${PROJECT_MANAGE_PY_DIR}')
+|os.environ['DJANGO_SETTINGS_MODULE'] = '${PROJECT_NAME_PATHS}.settings'
+|activate_env = '${VIRTUAL_ENV_ACTIVATE_PATH}'
+|execfile(activate_env, dict(__file__ = activate_env))
+|
+|from django.core.wsgi import get_wsgi_application
+|application = get_wsgi_application()
+|
+                                    """
+                            ), env
+                    )
+            )
+
+def collect_static():
+    execute(configure_wsgi)
+    with virtualenv(env.WORKON):
+        with cd(env.PROJECT_MANAGE_PY_DIR):
+            sudo("python manage.py collectstatic --noinput")
+
+def enable_site():
+    execute(configure_virtual_host)
+    execute(configure_wsgi)
+    execute(collect_static)
+    sudo("a2dissite 000-default.conf")
+    sudo("a2ensite {SITE_NAME}.conf".format(**env))
+    execute(restart_web_server)
+
+
+##############################################################################
+# Deploy site
+##############################################################################
+
+@task
+def deploy():
+    execute(provision)
+    execute(sync_db)
+    execute(enable_site)
