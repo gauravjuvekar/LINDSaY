@@ -396,11 +396,12 @@ def configure_wsgi():
     with mode_sudo():
         with cd(os.path.join('/', 'var', 'www')):
             dir_ensure(env.SITE_NAME)
-            file_write(
-                    "index.wsgi",
-                    text_template(
-                            text_strip_margin(
-                                    """
+            with cd(env.SITE_NAME):
+                file_write(
+                        "index.wsgi",
+                        text_template(
+                                text_strip_margin(
+                                        """
 |import os
 |import sys
 |import site
@@ -414,10 +415,10 @@ def configure_wsgi():
 |from django.core.wsgi import get_wsgi_application
 |application = get_wsgi_application()
 |
-                                    """
-                            ), env
-                    )
-            )
+                                        """
+                                ), env
+                        )
+                )
 
 @once
 def collect_static():
