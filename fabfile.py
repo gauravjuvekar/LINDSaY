@@ -32,6 +32,10 @@ env.STATIC_ROOT = os.path.join('/', 'var', 'www',
         env.SITE_NAME, 'static'
 )
 env.STATIC_URL = '/static/'
+env.MEDIA_ROOT = os.path.join('/', 'var', 'www',
+        env.SITE_NAME, 'media'
+)
+env.MEDIA_URL = '/media/'
 env.SERVER_ADMIN_MAIL = 'webmaster@localhost'
 env.WSGI_SCRIPT_PATH = os.path.join('/', 'var', 'www',
         env.SITE_NAME, 'index.wsgi'
@@ -373,18 +377,19 @@ def configure_virtual_host():
                     text_template(
                             text_strip_margin(
                                     """
-                                    |<VirtualHost *:80>
-                                    |    ServerAdmin ${SERVER_ADMIN_MAIL}
-                                    |    ServerName ${SITE_NAME}
-                                    |    ServerAlias www.${SITE_NAME}
-                                    |
-                                    |    WSGIScriptAlias / ${WSGI_SCRIPT_PATH}
-                                    |
-                                    |    Alias ${STATIC_URL} ${STATIC_ROOT}
-                                    |    <Location "${STATIC_URL}">
-                                    |        Options -Indexes
-                                    |    </Location>
-                                    |</VirtualHost>
+|<VirtualHost *:80>
+|    ServerAdmin ${SERVER_ADMIN_MAIL}
+|    ServerName ${SITE_NAME}
+|    ServerAlias www.${SITE_NAME}
+|
+|    WSGIScriptAlias / ${WSGI_SCRIPT_PATH}
+|
+|    Alias ${STATIC_URL} ${STATIC_ROOT}
+|    Alias ${MEDIA_URL} ${MEDIA_ROOT}
+|    <Location "${STATIC_URL}">
+|        Options -Indexes
+|    </Location>
+|</VirtualHost>
                                     """
                             ), env
                     )
