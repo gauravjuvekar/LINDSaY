@@ -125,3 +125,6 @@ USE_TZ = True
 
 STATIC_ROOT = runtime_configuration.STATIC_ROOT
 STATIC_URL = '/static/'
+
+MEDIA_ROOT = runtime_configuration.MEDIA_ROOT
+MEDIA_URL = '/media/'
