@@ -1,10 +1,17 @@
 from django import forms
 from mesg.models import Category
-from django.contrib.admin.widgets import AdminDateWidget
 
-#class CalendarWidget(forms.TextInput):
-    #class Media:
-        #js = 
+class CalendarWidget(forms.TextInput):
+    class Media:
+        # TODO:Untie this from mesg app later
+        # TODO:Use minified js
+        css = {
+                'all': ('mesg/css/jquery-ui.css',)
+        }
+        js = (
+                'mesg/js/external/jquery/jquery.js',
+                'mesg/js/jquery-ui.js',
+        )
 
 
 
@@ -19,7 +26,7 @@ class CreateMessageForm(forms.Form):
     expires_date = forms.DateField(
             label='Expire this message after',
             required=False,
-            widget = AdminDateWidget,
+            widget = CalendarWidget,
     )
 
     choices = [('','----')]
