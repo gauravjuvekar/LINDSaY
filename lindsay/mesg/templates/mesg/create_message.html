@@ -5,6 +5,11 @@
 Create message - 
 {% endblock title %}
 
+{% block extrahead %}
+<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="/static/admin/js/core.js"></script>
+{{ form.media }}
+{% endblock extrahead %}
 
 {% block body %}
 <form action="{% url 'mesg:create_message' %}" method="post">

@@ -1,5 +1,11 @@
 from django import forms
 from mesg.models import Category
+from django.contrib.admin.widgets import AdminDateWidget
+
+#class CalendarWidget(forms.TextInput):
+    #class Media:
+        #js = 
+
 
 
 class CreateMessageForm(forms.Form):
@@ -13,6 +19,7 @@ class CreateMessageForm(forms.Form):
     expires_date = forms.DateField(
             label='Expire this message after',
             required=False,
+            widget = AdminDateWidget,
     )
 
     choices = [('','----')]
