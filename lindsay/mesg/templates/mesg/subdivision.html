@@ -7,6 +7,9 @@ Messages for {{ subdivision.division.name}} {{ subdivision.name }} -
 
 
 {% block subdivision_name %}
+<a href="{% url 'mesg:division' division_name=subdivision.parent.name %}">
+	{{ subdivision.parent.name }}
+</a> &gt;&gt;
 	{{ subdivision.name }}
 {% endblock subdivision_name %}
 

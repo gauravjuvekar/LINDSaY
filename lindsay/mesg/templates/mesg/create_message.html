@@ -5,6 +5,16 @@
 Create message - 
 {% endblock title %}
 
+{% block extrahead %}
+{{ form.media }}
+<script>
+$(function() {
+	$( "#id_expires_date" ).datepicker({
+		dateFormat: 'yy-mm-dd',
+	});
+});
+</script>
+{% endblock extrahead %}
 
 {% block body %}
 <form action="{% url 'mesg:create_message' %}" method="post">

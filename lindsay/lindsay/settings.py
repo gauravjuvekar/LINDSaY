@@ -10,38 +10,21 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Import runtime configuraton from project root generated at deployment
-os.sys.path.append(os.path.dirname(os.path.dirname(BASE_DIR)))
-from LINDSaY import runtime_configuration
-# This is a python file with the following parameters set
-# SECRET_KEY
-# ALLOWED_HOSTS
-#
-# DATABASE_NAME
-# DATABASE_USER
-# DATABASE_PASSWORD
-## Optionally 
-# DATABASE_HOST
-# DATABASE_PORT
-# 
-# STATIC_ROOT
-
-
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
-# NOTE: SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = runtime_configuration.SECRET_KEY
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'xm*!xxw@$e*9)fh!*28z90o$yb-&2*)eu18tehf9p(&f^r)is)'
 
-# NOTE: SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-TEMPLATE_DEBUG = False
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
 
-ALLOWED_HOSTS = runtime_configuration.ALLOWED_HOSTS
+TEMPLATE_DEBUG = True
+
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -88,16 +71,42 @@ WSGI_APPLICATION = 'lindsay.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': runtime_configuration.DATABASE_NAME,
-        'USER': runtime_configuration.DATABASE_USER,
-        'PASSWORD': runtime_configuration.DATABASE_PASSWORD
+        'NAME': 'django_db',
+        'USER': 'djangouser',
+        'PASSWORD': 'djangouserpassword',
         #'HOST': '127.0.0.1',
         #'PORT': '3306',
     }
 }
 
+import sys
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'django_db',
+            'USER': 'djangotestuser',
+            'PASSWORD': 'djangotestuserpassword',
+            #'HOST': '127.0.0.1',
+            #'PORT': '3306',
+        }
+    }
+    
+if os.environ.get('TRAVIS') == 'true':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'myapp_test',
+            'USER': 'travis',
+            'PASSWORD': '',
+            #'HOST': '127.0.0.1',
+            #'PORT': '3306',
+        }
+    }
+
 
 # Auth
+
 
 AUTHENTICATION_BACKENDS = (
 #    'django_auth_ldap.backend.LDAPbackend',
@@ -123,8 +132,4 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
-STATIC_ROOT = runtime_configuration.STATIC_ROOT
 STATIC_URL = '/static/'
-
-MEDIA_ROOT = runtime_configuration.MEDIA_ROOT
-MEDIA_URL = '/media/'

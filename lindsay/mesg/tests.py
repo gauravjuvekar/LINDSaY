@@ -613,3 +613,48 @@ class IndexViewTests(TestCase):
                     ]
                 )
         )
+
+class FeedsTests(TestCase):
+
+    def test_division_feed_with_no_messages(self):
+        create_division_subdivisions('7', ['A', 'B'])
+        div_7 = Category.objects.get(name='7', parent=None)
+        u = User.objects.create_user('testuser')
+
+        m_self_never_expires = Message.objects.create(
+                message_text='Test message in self that never expires',
+                author=u,
+                category=Category.objects.get(name='7', parent=None)
+        )
+        response = self.client.get(reverse(
+                'mesg:division_feed',
+                kwargs={'division_name': '7'}
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertRegexpMatches(
+                response['CONTENT-TYPE'],
+                r'^application/rss.*'
+        )
+        
+    def test_subdivision_feed(self):
+        create_division_subdivisions('7', ['A', 'B'])
+        u = User.objects.create_user('testuser')
+
+        m_self_never_expires = Message.objects.create(
+                message_text='Test message in self that never expires',
+                author=u,
+                category=Category.objects.get(name='7', parent=None)
+        )
+        response = self.client.get(reverse(
+                'mesg:subdivision_feed',
+                kwargs={'subdivision_name': 'A','division_name': '7'}
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertRegexpMatches(
+                response['CONTENT-TYPE'],
+                r'^application/rss.*'
+        )
