@@ -1,6 +1,17 @@
 from django import forms
 from mesg.models import Category
 
+class CalendarWidget(forms.TextInput):
+    class Media:
+        css = {
+                'all': ('jquery/jquery-ui.min.css',)
+        }
+        js = (
+                'jquery/external/jquery/jquery.min.js',
+                'jquery/jquery-ui.min.js',
+        )
+
+
 
 class CreateMessageForm(forms.Form):
     message_text = forms.CharField(
@@ -13,6 +24,7 @@ class CreateMessageForm(forms.Form):
     expires_date = forms.DateField(
             label='Expire this message after',
             required=False,
+            widget = CalendarWidget,
     )
 
     choices = [('','----')]
