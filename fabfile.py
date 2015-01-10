@@ -307,13 +307,15 @@ def ensure_project_configuration():
                         text_template(
                                 text_strip_margin(
                                     """
-                                    |SECRET_KEY='${SECRET_KEY}'
-                                    |ALLOWED_HOSTS=${ALLOWED_HOSTS}
-                                    |DATABASE_NAME='${DB_NAME}'
-                                    |DATABASE_USER='${DB_USERNAME}'
-                                    |DATABASE_PASSWORD='${DB_USER_PASSWORD}'
-                                    |STATIC_ROOT='${STATIC_ROOT}'
-                                    |STATIC_URL='${STATIC_URL}'
+|SECRET_KEY='${SECRET_KEY}'
+|ALLOWED_HOSTS=${ALLOWED_HOSTS}
+|DATABASE_NAME='${DB_NAME}'
+|DATABASE_USER='${DB_USERNAME}'
+|DATABASE_PASSWORD='${DB_USER_PASSWORD}'
+|STATIC_ROOT='${STATIC_ROOT}'
+|STATIC_URL='${STATIC_URL}'
+|MEDIA_ROOT='${MEDIA_ROOT}'
+|MEDIA_URL='${MEDIA_URL}'
                                     """
                                 ), env
                         )
