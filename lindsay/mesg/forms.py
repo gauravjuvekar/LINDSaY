@@ -3,14 +3,12 @@ from mesg.models import Category
 
 class CalendarWidget(forms.TextInput):
     class Media:
-        # TODO:Untie this from mesg app later
-        # TODO:Use minified js
         css = {
-                'all': ('mesg/css/jquery-ui.css',)
+                'all': ('jquery/jquery-ui.min.css',)
         }
         js = (
-                'mesg/js/external/jquery/jquery.js',
-                'mesg/js/jquery-ui.js',
+                'jquery/external/jquery/jquery.min.js',
+                'jquery/jquery-ui.min.js',
         )
 
 
