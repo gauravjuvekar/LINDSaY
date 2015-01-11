@@ -10,6 +10,13 @@ Message {{ message.pk }} -
 {{ message.message_text }}
 {% endblock message_text %}
 
+{% block files %}
+<ul>
+	{% for file in message.files.all %}
+		<li><a href="{{ file.image.url }}">{{ file.image.name }}</a></li>
+	{% endfor %}
+</ul>
+{% endblock files %}
 
 {% block author_name %}
 {{ message.author.username }}

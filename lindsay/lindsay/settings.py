@@ -134,4 +134,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/gaurav/DJANGO_UPLOADS'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'DJANGO_UPLOADS')

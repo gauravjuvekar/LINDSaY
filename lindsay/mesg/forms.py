@@ -39,7 +39,9 @@ class CreateMessageForm(forms.Form):
             required=True
     )
     
-    image = forms.FileField()
+    image = forms.FileField(
+            required=False,
+    )
 
 
 class UserConfigForm(forms.Form):

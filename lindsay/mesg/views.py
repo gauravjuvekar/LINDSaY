@@ -10,7 +10,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 
-from mesg.models import Category, Message, UserDetails
+from mesg.models import Category, Message, UserDetails, UploadImage
 from django.utils import timezone
 
 from mesg.forms import CreateMessageForm, UserConfigForm
@@ -159,6 +159,15 @@ def create_message(request):
                     expires_date=data['expires_date'],
             )
             message.save()
+
+            if request.FILES:
+                image = UploadImage(
+                        image=request.FILES['image'],
+                        message=message,
+                )
+                image.save()
+
+
 
             return HttpResponseRedirect(reverse(
                         'mesg:message',

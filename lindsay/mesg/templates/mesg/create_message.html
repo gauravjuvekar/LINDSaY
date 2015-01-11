@@ -17,7 +17,7 @@ $(function() {
 {% endblock extrahead %}
 
 {% block body %}
-<form action="{% url 'mesg:create_message' %}" method="post">
+<form action="{% url 'mesg:create_message' %}" method="post" enctype="multipart/form-data">
 	{% csrf_token %}
 	{{ form.as_p }}
 	<input type="submit" value="Post it" />
