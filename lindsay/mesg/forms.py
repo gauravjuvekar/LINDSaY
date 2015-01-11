@@ -38,6 +38,8 @@ class CreateMessageForm(forms.Form):
             label='Category',
             required=True
     )
+    
+    image = forms.FileField()
 
 
 class UserConfigForm(forms.Form):

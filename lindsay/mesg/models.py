@@ -41,3 +41,10 @@ class UserDetails(models.Model):
 
     def __unicode__(self):
         return self.user.username
+
+
+class UploadImage(models.Model):
+    image = models.FileField()
+    message = models.ForeignKey(Message, related_name='files')
+
+
