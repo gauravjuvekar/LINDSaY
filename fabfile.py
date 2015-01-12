@@ -32,9 +32,10 @@ env.STATIC_ROOT = os.path.join('/', 'var', 'www',
         env.SITE_NAME, 'static'
 )
 env.STATIC_URL = '/static/'
-env.MEDIA_ROOT = os.path.join('/', 'var', 'www',
-        env.SITE_NAME, 'media'
-)
+# Media root defined in project root path
+#env.MEDIA_ROOT = os.path.join('/', 'var', 'www',
+        #env.SITE_NAME, 'media'
+#)
 env.MEDIA_URL = '/media/'
 env.SERVER_ADMIN_MAIL = 'webmaster@localhost'
 env.WSGI_SCRIPT_PATH = os.path.join('/', 'var', 'www',
@@ -272,6 +273,8 @@ def ensure_code():
                         env.DJANGO_PROJECT_PATH,
                         env.PROJECT_NAME_PATHS,
                 )
+                env.MEDIA_ROOT = os.path.join(env.DJANGO_PROJECT_PATH,'media')
+                dir_ensure(env.MEDIA_ROOT) 
 
 
 @once
