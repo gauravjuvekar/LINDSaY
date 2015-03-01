@@ -20,7 +20,6 @@ env.VIRTUAL_ENV_CONFIG_FILE = '.profile'
 env.RUNTIME_CONFIG_FILE = "runtime_configuration.py"
 
 env.DJANGO_USERNAME = "djangouser"
-env.DJANGO_USER_PASSWORD = b64encode(os.urandom(64))
 env.DJANGO_USER_TOPLEVEL = "django_projects"
 
 env.SECRET_KEY = b64encode(os.urandom(64))
@@ -172,7 +171,7 @@ def provision():
 
 @once
 def ensure_django_user():
-    user_ensure(env.DJANGO_USERNAME, passwd=env.DJANGO_USER_PASSWORD)
+    user_ensure(env.DJANGO_USERNAME)
     # Use bash as virtualenvs would mostly be configured in .bashrc
     sudo("chsh -s /bin/bash {DJANGO_USERNAME}".format(**env))
     env.DJANGO_USER_HOME_PATH = os.path.join('/', 'home', env.DJANGO_USERNAME)
