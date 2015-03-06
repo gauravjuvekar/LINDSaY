@@ -26,9 +26,13 @@ class Message(models.Model):
     message_text = models.CharField(max_length=200)
     # TODO ##
     author = models.ForeignKey(User)
-    pub_date = models.DateTimeField(auto_now_add=True)
-    expires_date = models.DateField(blank=True, null=True)
-    category = models.ForeignKey(Category, related_name='messages')
+    pub_date = models.DateTimeField(auto_now_add=True, db_index=True)
+    expires_date = models.DateField(blank=True, null=True, db_index=True)
+    category = models.ForeignKey(
+            Category,
+            related_name='messages',
+            db_index=True
+    )
 
     def __unicode__(self):
         return self.message_text
