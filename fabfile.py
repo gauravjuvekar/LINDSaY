@@ -30,12 +30,12 @@ env.ALLOWED_HOSTS = ['*']
 env.STATIC_ROOT = os.path.join('/', 'var', 'www',
         env.SITE_NAME, 'static'
 )
-env.STATIC_URL = '/static/'
+env.STATIC_URL = '/static'
 # Media root defined in project root path
 #env.MEDIA_ROOT = os.path.join('/', 'var', 'www',
         #env.SITE_NAME, 'media'
 #)
-env.MEDIA_URL = '/media/'
+env.MEDIA_URL = '/media'
 env.SERVER_ADMIN_MAIL = 'webmaster@localhost'
 env.WSGI_SCRIPT_PATH = os.path.join('/', 'var', 'www',
         env.SITE_NAME, 'index.wsgi'
@@ -315,9 +315,9 @@ def ensure_project_configuration():
 |DATABASE_USER='${DB_USERNAME}'
 |DATABASE_PASSWORD='${DB_USER_PASSWORD}'
 |STATIC_ROOT='${STATIC_ROOT}'
-|STATIC_URL='${STATIC_URL}'
+|STATIC_URL='${STATIC_URL}/'
 |MEDIA_ROOT='${MEDIA_ROOT}'
-|MEDIA_URL='${MEDIA_URL}'
+|MEDIA_URL='${MEDIA_URL}/'
                                     """
                                 ), env
                         )
