@@ -1,42 +1,39 @@
 from django.db import models
 from django.contrib.auth.models import User
-#from django.contrib.auth import get_user_model
+from django.template.defaultfilters import slugify
+from mptt.models import MPTTModel, TreeForeignKey
 
 
-
-class Category(models.Model):
+class Category(MPTTModel):
     name = models.CharField(max_length=32)
-    #level = models.PositiveSmallIntegerField()
-    parent = models.ForeignKey(
-            'self', null=True, blank=True,
-            related_name='subcategories'
-    )
+    parent = TreeForeignKey('self', null=True, blank=True, db_index=True,
+                            related_name='subcategories')
+
+    slug = models.SlugField(db_index=False)
+    url = models.TextField(max_length=200, db_index=True)
 
     def __unicode__(self):
-        name = []
-        obj = self
-        while obj != None:
-            name.append(obj.name)
-            obj = obj.parent
+        return self.url
 
-        return '/'.join(name[::-1])
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        if self.parent:
+            self.url = '%s/%s' % (self.parent.url, self.slug)
+        else:
+            self.url = self.slug
+        MPTTModel.save(self, *args, **kwargs)
 
 
 class Message(models.Model):
     message_text = models.CharField(max_length=200)
-    # TODO ##
     author = models.ForeignKey(User)
     pub_date = models.DateTimeField(auto_now_add=True, db_index=True)
     expires_date = models.DateField(blank=True, null=True, db_index=True)
-    category = models.ForeignKey(
-            Category,
-            related_name='messages',
-            db_index=True
-    )
+    category = models.ForeignKey(Category, related_name='messages',
+                                 db_index=True)
 
     def __unicode__(self):
         return self.message_text
-
 
 
 class UserDetails(models.Model):
