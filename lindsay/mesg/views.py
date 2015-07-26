@@ -122,11 +122,9 @@ def user_login(request):
         else:
             state = "Invalid credentials"
             # NOTE: not redirecting from a POST
-            return render_to_response(
-                    'mesg/login.html',
-                    {'state': state, 'next': next_url},
-                    context,
-            )
+            return render_to_response('mesg/login.html',
+                                      {'state': state, 'next': next_url},
+                                      context)
     else:
         return render_to_response('mesg/login.html', {}, context)
 
@@ -152,12 +150,10 @@ def create_message(request):
             except ObjectDoesNotExist:
                 return HttpResponseBadRequest
 
-            message = Message(
-                    message_text=data['message_text'],
-                    author=request.user,
-                    category=category,
-                    expires_date=data['expires_date'],
-            )
+            message = Message(message_text=data['message_text'],
+                              author=request.user,
+                              category=category,
+                              expires_date=data['expires_date'])
             message.save()
 
             return HttpResponseRedirect(reverse(
@@ -177,11 +173,8 @@ def expire_message(request, message_id):
     if message.expires_date == None:
         message.expires_date = timezone.now()
         message.save()
-        return HttpResponseRedirect(reverse(
-                'mesg:message',
-                kwargs={'message_id': message.id}
-            )
-        )
+        return HttpResponseRedirect(reverse('mesg:message',
+                                            kwargs={'message_id': message.id}))
     else:
         return HttpResponseBadRequest
 
