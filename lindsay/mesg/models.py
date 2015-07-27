@@ -10,7 +10,7 @@ class Category(MPTTModel):
                             related_name='subcategories')
 
     slug = models.SlugField(db_index=False)
-    url = models.TextField(max_length=200, db_index=True)
+    url = models.CharField(max_length=200, db_index=True, unique=True)
 
     def __unicode__(self):
         return self.url
@@ -29,8 +29,7 @@ class Message(models.Model):
     author = models.ForeignKey(User)
     pub_date = models.DateTimeField(auto_now_add=True, db_index=True)
     expires_date = models.DateField(blank=True, null=True, db_index=True)
-    category = models.ForeignKey(Category, related_name='messages',
-                                 db_index=True)
+    category = TreeForeignKey(Category, related_name='messages', db_index=True)
 
     def __unicode__(self):
         return self.message_text
